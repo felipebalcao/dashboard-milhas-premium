@@ -4,56 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Premium - Monitoramento de Milhas</title>
-    
+
     <!-- Tailwind CSS + DaisyUI -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.6.0/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/dist/apexcharts.min.js"></script>
-    
+
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <style>
         * { font-family: 'Inter', sans-serif; }
-        
+
         body {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
             min-height: 100vh;
         }
-        
+
         .gradient-text {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
         .card-gradient {
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .stat-card {
             transition: all 0.3s ease;
             background: rgba(30, 41, 59, 0.5);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .stat-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
             border-color: rgba(102, 126, 234, 0.5);
         }
-        
+
         .chart-container {
             background: rgba(30, 41, 59, 0.5);
             backdrop-filter: blur(10px);
@@ -61,27 +61,27 @@
             border-radius: 1rem;
             padding: 1.5rem;
         }
-        
+
         @keyframes pulse-glow {
             0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
             50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.6); }
         }
-        
+
         .pulse-glow {
             animation: pulse-glow 2s ease-in-out infinite;
         }
-        
+
         .hero-gradient {
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .apexcharts-tooltip {
             background: rgba(15, 23, 42, 0.95) !important;
             border: 1px solid rgba(102, 126, 234, 0.5) !important;
             color: #fff !important;
         }
-        
+
         .table-container {
             background: rgba(30, 41, 59, 0.5);
             backdrop-filter: blur(10px);
@@ -91,7 +91,7 @@
     </style>
 </head>
 <body>
-    
+
     <!-- Hero Section -->
     <div class="hero-gradient py-8">
         <div class="container mx-auto px-4">
@@ -99,7 +99,7 @@
             <p class="text-center text-gray-400 text-lg">Monitoramento em Tempo Real de Ofertas</p>
         </div>
     </div>
-    
+
     <!-- Configuration Section -->
     <div class="container mx-auto px-4 py-8">
         <div class="grid md:grid-cols-2 gap-6 mb-8">
@@ -111,14 +111,14 @@
                         <label class="label">
                             <span class="label-text text-gray-300">Supabase URL</span>
                         </label>
-                        <input type="text" id="supabaseUrl" placeholder="https://seu-projeto.supabase.co" 
+                        <input type="text" id="supabaseUrl" placeholder="https://seu-projeto.supabase.co"
                                class="input input-bordered bg-slate-800 text-white" />
                     </div>
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text text-gray-300">Supabase Anon Key</span>
                         </label>
-                        <input type="password" id="supabaseKey" placeholder="eyJhbGc..." 
+                        <input type="password" id="supabaseKey" placeholder="eyJhbGc..."
                                class="input input-bordered bg-slate-800 text-white" />
                     </div>
                     <button id="btnConnect" class="btn btn-primary mt-4 pulse-glow">
@@ -126,7 +126,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Filters Card -->
             <div class="card card-gradient shadow-xl">
                 <div class="card-body">
@@ -155,7 +155,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- KPI Cards -->
         <div id="kpiContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" style="display:none;">
             <div class="stat-card rounded-xl p-6">
@@ -175,7 +175,7 @@
                 <div id="kpiPeak" class="text-4xl font-bold gradient-text">0</div>
             </div>
         </div>
-        
+
         <!-- Charts Grid -->
         <div id="chartsContainer" class="grid md:grid-cols-2 gap-6 mb-8" style="display:none;">
             <!-- Hourly Chart -->
@@ -183,44 +183,44 @@
                 <h3 class="text-xl font-bold text-white mb-4">📊 Ofertas por Hora (24h)</h3>
                 <div id="chartHourly" style="height: 300px;"></div>
             </div>
-            
+
             <!-- Daily Chart -->
             <div class="chart-container">
                 <h3 class="text-xl font-bold text-white mb-4">📈 Ofertas por Dia (5 dias)</h3>
                 <div id="chartDaily" style="height: 300px;"></div>
             </div>
-            
+
             <!-- Cabin Chart -->
             <div class="chart-container">
                 <h3 class="text-xl font-bold text-white mb-4">✈️ Distribuição por Cabine</h3>
                 <div id="chartCabin" style="height: 300px;"></div>
             </div>
-            
+
             <!-- Program Chart -->
             <div class="chart-container">
                 <h3 class="text-xl font-bold text-white mb-4">🎫 Distribuição por Programa</h3>
                 <div id="chartProgram" style="height: 300px;"></div>
             </div>
-            
+
             <!-- Top Origins -->
             <div class="chart-container">
-                <h3 class="text-xl font-bold text-white mb-4">�� Top 5 Origens</h3>
+                <h3 class="text-xl font-bold text-white mb-4">🌍 Top 5 Origens</h3>
                 <div id="chartOrigins" style="height: 300px;"></div>
             </div>
-            
+
             <!-- Top Destinations -->
             <div class="chart-container">
                 <h3 class="text-xl font-bold text-white mb-4">🎯 Top 5 Destinos</h3>
                 <div id="chartDestinations" style="height: 300px;"></div>
             </div>
         </div>
-        
+
         <!-- Data Quality -->
         <div id="qualityContainer" class="chart-container mb-8" style="display:none;">
             <h3 class="text-xl font-bold text-white mb-4">🔍 Qualidade dos Dados</h3>
             <div id="chartQuality" style="height: 300px;"></div>
         </div>
-        
+
         <!-- Latest Offers Table -->
         <div id="tableContainer" class="table-container p-6" style="display:none;">
             <h3 class="text-2xl font-bold text-white mb-4">🆕 Últimas 10 Ofertas</h3>
@@ -230,7 +230,7 @@
                         <tr class="text-gray-300">
                             <th>Origem</th>
                             <th>Destino</th>
-                            <th>Milhas</th>
+                            <th>Pontos</th>
                             <th>Cabine</th>
                             <th>Programa</th>
                             <th>Link</th>
@@ -242,7 +242,7 @@
             </div>
         </div>
     </div>
-    
+
     <script>
     // ============= UTILITIES =============
     const Utils = {
@@ -259,7 +259,7 @@
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         },
-        
+
         formatDate(d) {
             if (!d) return '--';
             const dt = new Date(d);
@@ -267,60 +267,52 @@
                 day: '2-digit', month: '2-digit', year: 'numeric',
                 hour: '2-digit', minute: '2-digit'
             });
-        },
-        
-        normalizeField(obj, field) {
-            const variations = [field, field.toLowerCase(), field.charAt(0).toUpperCase() + field.slice(1).toLowerCase()];
-            for (let v of variations) {
-                if (obj[v] !== undefined && obj[v] !== null) return obj[v];
-            }
-            return null;
         }
     };
-    
+
     // ============= SUPABASE MANAGER =============
     const SupabaseManager = {
         client: null,
         supabaseUrl: '',
         tableName: 'Rotas Encontradas',
-        
+
         initialize(key, url = null) {
             if (url && url.trim()) this.supabaseUrl = url.trim();
             const { createClient } = supabase;
             this.client = createClient(this.supabaseUrl, key.trim());
             return true;
         },
-        
+
         async fetchData(filters = {}) {
             let query = this.client.from(this.tableName).select('*');
-            if (filters.startDate) query = query.gte('created_at', filters.startDate);
-            if (filters.endDate) query = query.lte('created_at', filters.endDate);
-            const { data, error } = await query.order('created_at', { ascending: false });
+            if (filters.startDate) query = query.gte('data_viagem', filters.startDate);
+            if (filters.endDate) query = query.lte('data_viagem', filters.endDate);
+            const { data, error } = await query.order('data_viagem', { ascending: false });
             if (error) throw error;
             return data || [];
         },
-        
+
         subscribeToChanges(callback) {
             return this.client
                 .channel('table-changes')
-                .on('postgres_changes', 
-                    { event: '*', schema: 'public', table: this.tableName }, 
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: this.tableName },
                     callback)
                 .subscribe();
         }
     };
-    
+
     // ============= CHART MANAGER =============
     const ChartManager = {
         charts: {},
-        
+
         destroy(id) {
             if (this.charts[id]) {
                 this.charts[id].destroy();
                 delete this.charts[id];
             }
         },
-        
+
         createLineChart(id, data) {
             this.destroy(id);
             const options = {
@@ -365,7 +357,7 @@
             this.charts[id] = new ApexCharts(document.getElementById(id), options);
             this.charts[id].render();
         },
-        
+
         createBarChart(id, data) {
             this.destroy(id);
             const options = {
@@ -412,7 +404,7 @@
             this.charts[id] = new ApexCharts(document.getElementById(id), options);
             this.charts[id].render();
         },
-        
+
         createDonutChart(id, data) {
             this.destroy(id);
             const options = {
@@ -458,19 +450,19 @@
             this.charts[id].render();
         }
     };
-    
+
     // ============= MAIN APP =============
     const App = {
         data: [],
         pollInterval: null,
         subscription: null,
-        
+
         init() {
             this.loadConfig();
             this.bindEvents();
             this.setDefaultDates();
         },
-        
+
         loadConfig() {
             const url = localStorage.getItem('supabaseUrl');
             const key = localStorage.getItem('supabaseKey');
@@ -478,7 +470,7 @@
             if (key) document.getElementById('supabaseKey').value = key;
             if (url && key) this.connect();
         },
-        
+
         setDefaultDates() {
             const end = new Date();
             const start = new Date();
@@ -486,21 +478,21 @@
             document.getElementById('startDate').value = start.toISOString().split('T')[0];
             document.getElementById('endDate').value = end.toISOString().split('T')[0];
         },
-        
+
         bindEvents() {
             document.getElementById('btnConnect').addEventListener('click', () => this.connect());
             document.getElementById('btnRefresh').addEventListener('click', () => this.refresh());
         },
-        
+
         connect() {
             const url = document.getElementById('supabaseUrl').value.trim();
             const key = document.getElementById('supabaseKey').value.trim();
-            
+
             if (!url || !key) {
                 Utils.showToast('❌ Preencha URL e Key!', 'error');
                 return;
             }
-            
+
             try {
                 SupabaseManager.initialize(key, url);
                 localStorage.setItem('supabaseUrl', url);
@@ -513,24 +505,22 @@
                 Utils.showToast('❌ Erro ao conectar: ' + e.message, 'error');
             }
         },
-        
+
         async refresh() {
             const filters = {
                 startDate: document.getElementById('startDate').value,
                 endDate: document.getElementById('endDate').value
             };
-            
+
             try {
                 let data = await SupabaseManager.fetchData(filters);
-                
+
                 if (document.getElementById('discardEmpty').checked) {
                     data = data.filter(r => {
-                        const origem = Utils.normalizeField(r, 'origem');
-                        const destino = Utils.normalizeField(r, 'destino');
-                        return origem && destino && origem.trim() && destino.trim();
+                        return r.origem && r.destino && r.origem.trim() && r.destino.trim();
                     });
                 }
-                
+
                 this.data = data;
                 this.render();
                 Utils.showToast('✅ Dados atualizados!', 'success');
@@ -538,73 +528,73 @@
                 Utils.showToast('❌ Erro ao buscar dados: ' + e.message, 'error');
             }
         },
-        
+
         startPolling() {
             if (this.pollInterval) clearInterval(this.pollInterval);
             this.pollInterval = setInterval(() => this.refresh(), 60000);
         },
-        
+
         subscribeRealtime() {
             if (this.subscription) this.subscription.unsubscribe();
             this.subscription = SupabaseManager.subscribeToChanges(() => this.refresh());
         },
-        
+
         render() {
             this.renderKPIs();
             this.renderCharts();
             this.renderTable();
-            
+
             document.getElementById('kpiContainer').style.display = 'grid';
             document.getElementById('chartsContainer').style.display = 'grid';
             document.getElementById('qualityContainer').style.display = 'block';
             document.getElementById('tableContainer').style.display = 'block';
         },
-        
+
         renderKPIs() {
             const total = this.data.length;
             const last24h = this.data.filter(r => {
-                const created = new Date(r.created_at);
+                const created = new Date(r.data_viagem);
                 const now = new Date();
                 return (now - created) < 24 * 60 * 60 * 1000;
             }).length;
-            
+
             const hourCounts = {};
             this.data.forEach(r => {
-                const h = new Date(r.created_at).getHours();
+                const h = new Date(r.data_viagem).getHours();
                 hourCounts[h] = (hourCounts[h] || 0) + 1;
             });
             const peak = Math.max(...Object.values(hourCounts), 0);
-            
-            const lastUpdate = this.data.length > 0 ? 
-                Utils.formatDate(this.data[0].created_at) : '--';
-            
+
+            const lastUpdate = this.data.length > 0 ?
+                Utils.formatDate(this.data[0].data_viagem) : '--';
+
             document.getElementById('kpiTotal').textContent = total;
             document.getElementById('kpi24h').textContent = last24h;
             document.getElementById('kpiPeak').textContent = peak;
             document.getElementById('kpiLastUpdate').textContent = lastUpdate;
         },
-        
+
         renderCharts() {
             // Hourly
             const hourCounts = {};
             for (let h = 0; h < 24; h++) hourCounts[h] = 0;
             this.data.filter(r => {
-                const created = new Date(r.created_at);
+                const created = new Date(r.data_viagem);
                 const now = new Date();
                 return (now - created) < 24 * 60 * 60 * 1000;
             }).forEach(r => {
-                const h = new Date(r.created_at).getHours();
+                const h = new Date(r.data_viagem).getHours();
                 hourCounts[h]++;
             });
             ChartManager.createLineChart('chartHourly', {
                 labels: Object.keys(hourCounts).map(h => `${h}h`),
                 values: Object.values(hourCounts)
             });
-            
+
             // Daily
             const dayCounts = {};
             this.data.forEach(r => {
-                const day = new Date(r.created_at).toISOString().split('T')[0];
+                const day = new Date(r.data_viagem).toISOString().split('T')[0];
                 dayCounts[day] = (dayCounts[day] || 0) + 1;
             });
             const sortedDays = Object.keys(dayCounts).sort().slice(-5);
@@ -612,33 +602,33 @@
                 labels: sortedDays,
                 values: sortedDays.map(d => dayCounts[d])
             });
-            
-            // Cabin
+
+            // Cabin - CORRIGIDO
             const cabinCounts = {};
             this.data.forEach(r => {
-                const cabin = Utils.normalizeField(r, 'cabine') || 'Desconhecido';
+                const cabin = r.tipo_cabine || 'Desconhecido';
                 cabinCounts[cabin] = (cabinCounts[cabin] || 0) + 1;
             });
             ChartManager.createDonutChart('chartCabin', {
                 labels: Object.keys(cabinCounts),
                 values: Object.values(cabinCounts)
             });
-            
-            // Program
+
+            // Program - CORRIGIDO
             const programCounts = {};
             this.data.forEach(r => {
-                const prog = Utils.normalizeField(r, 'programa') || 'Desconhecido';
+                const prog = r.programa_emissao || 'Desconhecido';
                 programCounts[prog] = (programCounts[prog] || 0) + 1;
             });
             ChartManager.createDonutChart('chartProgram', {
                 labels: Object.keys(programCounts),
                 values: Object.values(programCounts)
             });
-            
+
             // Top Origins
             const originCounts = {};
             this.data.forEach(r => {
-                const orig = Utils.normalizeField(r, 'origem') || 'Desconhecido';
+                const orig = r.origem || 'Desconhecido';
                 originCounts[orig] = (originCounts[orig] || 0) + 1;
             });
             const topOrigins = Object.entries(originCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
@@ -646,11 +636,11 @@
                 labels: topOrigins.map(x => x[0]),
                 values: topOrigins.map(x => x[1])
             });
-            
+
             // Top Destinations
             const destCounts = {};
             this.data.forEach(r => {
-                const dest = Utils.normalizeField(r, 'destino') || 'Desconhecido';
+                const dest = r.destino || 'Desconhecido';
                 destCounts[dest] = (destCounts[dest] || 0) + 1;
             });
             const topDests = Object.entries(destCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
@@ -658,44 +648,42 @@
                 labels: topDests.map(x => x[0]),
                 values: topDests.map(x => x[1])
             });
-            
+
             // Data Quality
             const totalRecords = this.data.length;
             const validRecords = this.data.filter(r => {
-                const origem = Utils.normalizeField(r, 'origem');
-                const destino = Utils.normalizeField(r, 'destino');
-                return origem && destino && origem.trim() && destino.trim();
+                return r.origem && r.destino && r.origem.trim() && r.destino.trim();
             }).length;
             const invalidRecords = totalRecords - validRecords;
-            
+
             ChartManager.createDonutChart('chartQuality', {
                 labels: ['Válidos', 'Inválidos/Vazios'],
                 values: [validRecords, invalidRecords]
             });
         },
-        
+
         renderTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            
+
             this.data.slice(0, 10).forEach(r => {
                 const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td>${Utils.normalizeField(r, 'origem') || '--'}</td>
-                    <td>${Utils.normalizeField(r, 'destino') || '--'}</td>
-                    <td>${Utils.normalizeField(r, 'milhas') || '--'}</td>
-                    <td>${Utils.normalizeField(r, 'cabine') || '--'}</td>
-                    <td>${Utils.normalizeField(r, 'programa') || '--'}</td>
+                    <td>${r.origem || '--'}</td>
+                    <td>${r.destino || '--'}</td>
+                    <td>${r.pontos || '--'}</td>
+                    <td>${r.tipo_cabine || '--'}</td>
+                    <td>${r.programa_emissao || '--'}</td>
                     <td>
-                        ${Utils.normalizeField(r, 'link') ? 
-                            `<a href="${Utils.normalizeField(r, 'link')}" target="_blank" class="btn btn-xs btn-primary">🔗 Ver</a>` : 
+                        ${r.link_acesso ? 
+                            `<a href="${r.link_acesso}" target="_blank" class="btn btn-xs btn-primary">🔗 Ver</a>` : 
                             '--'}
                     </td>
                 `;
             });
         }
     };
-    
+
     // Initialize app
     App.init();
     </script>
