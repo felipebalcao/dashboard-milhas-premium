@@ -1,108 +1,703 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Premium - Rotas Milhas</title>
+    <title>Dashboard Premium - Monitoramento de Milhas</title>
+    
+    <!-- Tailwind CSS + DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.6.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/dist/apexcharts.min.js"></script>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
     <style>
-        :root{--primary:#6366f1;--primary-dark:#4f46e5;--secondary:#ec4899;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#06b6d4;--dark:#0f172a;--darker:#020617;--light:rgba(255,255,255,0.1);--lighter:rgba(255,255,255,0.05)}*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%);background-attachment:fixed;min-height:100vh;color:#fff;overflow-x:hidden}body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(circle at 20% 30%,rgba(99,102,241,0.3) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(236,72,153,0.3) 0%,transparent 50%),radial-gradient(circle at 50% 50%,rgba(139,92,246,0.2) 0%,transparent 50%);animation:bgShift 15s ease-in-out infinite;z-index:-1}@keyframes bgShift{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.8;transform:scale(1.1)}}.alert-container{position:fixed;top:20px;right:20px;z-index:9999;max-width:400px}.alert{backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.2);animation:slideInRight 0.4s cubic-bezier(0.68,-0.55,0.265,1.55)}@keyframes slideInRight{from{opacity:0;transform:translateX(100px)}to{opacity:1;transform:translateX(0)}}.top-bar{background:rgba(15,23,42,0.6);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.1);padding:1rem 0;position:sticky;top:0;z-index:1000;box-shadow:0 4px 30px rgba(0,0,0,0.1)}.logo{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:flex;align-items:center;gap:0.5rem}.status-indicator{display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;background:rgba(255,255,255,0.1);border-radius:50px;font-size:0.875rem;font-weight:600;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2)}.status-dot{width:8px;height:8px;border-radius:50%;animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.2)}}.status-waiting .status-dot{background:#64748b}.status-connecting .status-dot{background:#f59e0b}.status-connected .status-dot{background:#10b981}.status-error .status-dot{background:#ef4444}.glass-card{background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);border-radius:24px;border:1px solid rgba(255,255,255,0.15);box-shadow:0 8px 32px rgba(0,0,0,0.2);transition:all 0.3s cubic-bezier(0.4,0,0.2,1);overflow:hidden}.glass-card:hover{transform:translateY(-8px);box-shadow:0 20px 60px rgba(0,0,0,0.3);border-color:rgba(255,255,255,0.25)}.card-header{padding:1.5rem;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03)}.card-title{font-size:1.125rem;font-weight:700;display:flex;align-items:center;gap:0.75rem;margin:0}.card-title i{font-size:1.5rem;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.card-body{padding:1.5rem}.kpi-card{position:relative;padding:2rem;min-height:160px;overflow:hidden}.kpi-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--primary),var(--secondary))}.kpi-icon{position:absolute;right:1.5rem;top:50%;transform:translateY(-50%);font-size:4rem;opacity:0.15}.kpi-label{font-size:0.875rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.7);margin-bottom:0.5rem}.kpi-value{font-size:2.5rem;font-weight:800;line-height:1;margin-bottom:0.5rem;background:linear-gradient(135deg,#fff,rgba(255,255,255,0.8));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.kpi-subtitle{font-size:0.813rem;color:rgba(255,255,255,0.6);font-weight:500}.form-control,.form-select{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:0.75rem 1rem;border-radius:12px;font-size:0.938rem;transition:all 0.3s}.form-control:focus,.form-select:focus{background:rgba(255,255,255,0.12);border-color:var(--primary);box-shadow:0 0 0 4px rgba(99,102,241,0.2);color:#fff}.form-control::placeholder{color:rgba(255,255,255,0.4)}.form-label{font-weight:600;font-size:0.875rem;margin-bottom:0.5rem;color:rgba(255,255,255,0.9)}.btn{padding:0.75rem 1.5rem;border-radius:12px;font-weight:600;font-size:0.938rem;border:none;transition:all 0.3s;position:relative;overflow:hidden}.btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.2);transform:translate(-50%,-50%);transition:width 0.6s,height 0.6s}.btn:hover::before{width:300px;height:300px}.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));box-shadow:0 4px 20px rgba(99,102,241,0.4)}.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,0.6)}.btn-success{background:linear-gradient(135deg,var(--success),#059669);box-shadow:0 4px 20px rgba(16,185,129,0.4)}.btn-success:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(16,185,129,0.6)}.btn-info{background:linear-gradient(135deg,var(--info),#0891b2);box-shadow:0 4px 20px rgba(6,182,212,0.4)}.btn-danger,.btn-outline-danger{background:linear-gradient(135deg,var(--danger),#dc2626);box-shadow:0 4px 20px rgba(239,68,68,0.4);color:white;border:none}.btn-outline-secondary{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff}.btn-outline-secondary:hover{background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.3);color:#fff}.table{color:#fff}.table thead th{background:rgba(255,255,255,0.05);border:none;padding:1rem;font-weight:700;font-size:0.813rem;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.7)}.table tbody td{padding:1rem;border-bottom:1px solid rgba(255,255,255,0.05);vertical-align:middle}.table tbody tr{transition:all 0.3s}.table tbody tr:hover{background:rgba(255,255,255,0.05);transform:scale(1.01)}.chart-container{position:relative;height:350px;padding:1rem}.chart-container-sm{height:250px}.skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.05) 25%,rgba(255,255,255,0.1) 50%,rgba(255,255,255,0.05) 75%);background-size:200% 100%;animation:shimmer 2s infinite;border-radius:8px;height:2.5rem}@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}.hero-section{padding:3rem 0;text-align:center}.hero-title{font-size:3rem;font-weight:900;margin-bottom:1rem;background:linear-gradient(135deg,#fff,rgba(255,255,255,0.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}.hero-subtitle{font-size:1.25rem;color:rgba(255,255,255,0.7);max-width:600px;margin:0 auto 2rem;font-weight:400}@media (max-width:768px){.hero-title{font-size:2rem}.hero-subtitle{font-size:1rem}.kpi-value{font-size:2rem}.kpi-icon{font-size:3rem}.chart-container{height:250px}.alert-container{right:10px;left:10px;max-width:100%}}::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:rgba(255,255,255,0.05)}::-webkit-scrollbar-thumb{background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:10px}::-webkit-scrollbar-thumb:hover{background:linear-gradient(135deg,var(--primary-dark),var(--danger))}
+        * { font-family: 'Inter', sans-serif; }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-card {
+            transition: all 0.3s ease;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+        
+        .chart-container {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.6); }
+        }
+        
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .apexcharts-tooltip {
+            background: rgba(15, 23, 42, 0.95) !important;
+            border: 1px solid rgba(102, 126, 234, 0.5) !important;
+            color: #fff !important;
+        }
+        
+        .table-container {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
     </style>
 </head>
 <body>
-    <div id="alertContainer" class="alert-container"></div>
-    <div class="top-bar">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <div class="logo"><i class="bi bi-airplane-engines-fill"></i><span>Dashboard Rotas Milhas</span></div>
-                </div>
-                <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                    <span class="status-indicator status-waiting" id="statusBadge"><span class="status-dot"></span><span id="statusText">Aguardando Configuração</span></span>
-                </div>
-            </div>
+    
+    <!-- Hero Section -->
+    <div class="hero-gradient py-8">
+        <div class="container mx-auto px-4">
+            <h1 class="text-5xl font-bold gradient-text text-center mb-2">Dashboard Premium Milhas</h1>
+            <p class="text-center text-gray-400 text-lg">Monitoramento em Tempo Real de Ofertas</p>
         </div>
     </div>
-    <div class="container py-4">
-        <div class="hero-section">
-            <h1 class="hero-title">Monitore Suas Ofertas em Tempo Real</h1>
-            <p class="hero-subtitle">Acompanhe todas as rotas de milhas encontradas pelo robô com visualizações poderosas e insights detalhados</p>
-            <button class="btn btn-primary btn-lg" id="btnRefresh"><i class="bi bi-arrow-clockwise me-2"></i>Atualizar Agora</button>
-        </div>
-        <section class="mb-4">
-            <div class="glass-card">
-                <div class="card-header"><h5 class="card-title"><i class="bi bi-sliders"></i>Configurações e Filtros</h5></div>
+    
+    <!-- Configuration Section -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <!-- Config Card -->
+            <div class="card card-gradient shadow-xl">
                 <div class="card-body">
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6"><label class="form-label">URL do Projeto Supabase</label><input type="text" class="form-control" id="inputSupabaseUrl" placeholder="https://xxxxx.supabase.co"></div>
-                        <div class="col-md-6"><label class="form-label">Supabase Anon Key</label><div class="input-group"><input type="password" class="form-control" id="inputAnonKey" placeholder="Sua chave pública anon"><button class="btn btn-outline-secondary" type="button" id="btnToggleKey"><i class="bi bi-eye"></i></button></div></div>
+                    <h2 class="card-title text-2xl gradient-text">⚙️ Configuração</h2>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Supabase URL</span>
+                        </label>
+                        <input type="text" id="supabaseUrl" placeholder="https://seu-projeto.supabase.co" 
+                               class="input input-bordered bg-slate-800 text-white" />
                     </div>
-                    <div class="row g-2 mb-4">
-                        <div class="col-auto"><button class="btn btn-success" id="btnSaveKey"><i class="bi bi-save me-2"></i>Salvar</button></div>
-                        <div class="col-auto"><button class="btn btn-info" id="btnTestConnection"><i class="bi bi-plug me-2"></i>Testar Conexão</button></div>
-                        <div class="col-auto"><button class="btn btn-danger" id="btnClearKey"><i class="bi bi-trash me-2"></i>Limpar</button></div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Supabase Anon Key</span>
+                        </label>
+                        <input type="password" id="supabaseKey" placeholder="eyJhbGc..." 
+                               class="input input-bordered bg-slate-800 text-white" />
                     </div>
-                    <hr style="border-color:rgba(255,255,255,0.1);margin:2rem 0">
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6"><label class="form-label">Data Início</label><input type="datetime-local" class="form-control" id="filterDateStart"></div>
-                        <div class="col-md-6"><label class="form-label">Data Fim</label><input type="datetime-local" class="form-control" id="filterDateEnd"></div>
-                    </div>
-                    <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="checkDiscardEmpty"><label class="form-check-label" for="checkDiscardEmpty" style="color:rgba(255,255,255,0.8)">Desconsiderar registros com campos vazios</label></div>
-                    <button class="btn btn-primary" id="btnApplyFilters"><i class="bi bi-funnel-fill me-2"></i>Aplicar Filtros</button>
+                    <button id="btnConnect" class="btn btn-primary mt-4 pulse-glow">
+                        🔌 Conectar ao Supabase
+                    </button>
                 </div>
             </div>
-        </section>
-        <section class="mb-4">
-            <div class="row g-4">
-                <div class="col-lg-3 col-md-6"><div class="glass-card kpi-card"><i class="bi bi-ticket-perforated-fill kpi-icon"></i><div class="kpi-label">Total de Ofertas</div><div class="kpi-value" id="kpiTotal"><div class="skeleton"></div></div><div class="kpi-subtitle">Registros encontrados</div></div></div>
-                <div class="col-lg-3 col-md-6"><div class="glass-card kpi-card"><i class="bi bi-clock-history kpi-icon"></i><div class="kpi-label">Última Atualização</div><div class="kpi-value" style="font-size:1.2rem;font-weight:600" id="kpiLastUpdate"><div class="skeleton"></div></div><div class="kpi-subtitle">Sincronização recente</div></div></div>
-                <div class="col-lg-3 col-md-6"><div class="glass-card kpi-card"><i class="bi bi-calendar-day kpi-icon"></i><div class="kpi-label">Últimas 24 Horas</div><div class="kpi-value" id="kpi24h"><div class="skeleton"></div></div><div class="kpi-subtitle">Ofertas recentes</div></div></div>
-                <div class="col-lg-3 col-md-6"><div class="glass-card kpi-card"><i class="bi bi-graph-up-arrow kpi-icon"></i><div class="kpi-label">Pico por Hora</div><div class="kpi-value" id="kpiPeak"><div class="skeleton"></div></div><div class="kpi-subtitle">Máximo em 24h</div></div></div>
-            </div>
-        </section>
-        <section class="mb-4">
-            <div class="row g-4">
-                <div class="col-lg-8"><div class="glass-card"><div class="card-header"><h5 class="card-title"><i class="bi bi-graph-up"></i>Ofertas por Hora (Últimas 24h)</h5></div><div class="card-body"><div class="chart-container"><canvas id="chartHourly"></canvas></div></div></div></div>
-                <div class="col-lg-4"><div class="glass-card"><div class="card-header"><h5 class="card-title"><i class="bi bi-calendar-week"></i>Últimos 5 Dias</h5></div><div class="card-body"><div class="chart-container"><canvas id="chartDaily"></canvas></div></div></div></div>
-            </div>
-        </section>
-        <section class="mb-4">
-            <div class="row g-4">
-                <div class="col-lg-6"><div class="glass-card"><div class="card-header"><h5 class="card-title"><i class="bi bi-pie-chart-fill"></i>Distribuição por Cabine</h5></div><div class="card-body"><div class="chart-container chart-container-sm"><canvas id="chartCabin"></canvas></div></div></div></div>
-                <div class="col-lg-6"><div class="glass-card"><div class="card-header"><h5 class="card-title"><i class="bi bi-credit-card"></i>Programas de Emissão</h5></div><div class="card-body"><div class="chart-container chart-container-sm"><canvas id="chartProgram"></canvas></div></div></div></div>
-            </div>
-        </section>
-        <section class="mb-4">
-            <div class="row g-4">
-                <div class="col-lg-6"><div class="glass-card"><div class="card-header"><h5 class="card-title"><i class="bi bi-geo-alt-fill"></i>Top 5 Origens</h5></div><div class="card-body"><div class="chart-container chart-container-sm"><canvas id="chartOrigins"></canvas></div></div></div></div>
-                <div class="col-lg-6"><div class="glass-card"><div class="card-header"><h5 class="card-title"><i class="bi bi-geo-fill"></i>Top 5 Destinos</h5></div><div class="card-body"><div class="chart-container chart-container-sm"><canvas id="chartDestinations"></canvas></div></div></div></div>
-            </div>
-        </section>
-        <section class="mb-4"><div class="glass-card"><div class="card-header"><h5 class="card-title"><i class="bi bi-shield-check"></i>Qualidade dos Dados</h5></div><div class="card-body"><div class="chart-container chart-container-sm"><canvas id="chartQuality"></canvas></div></div></div></section>
-        <section class="mb-5">
-            <div class="glass-card">
-                <div class="card-header"><h5 class="card-title"><i class="bi bi-list-stars"></i>Últimas 10 Ofertas Criadas</h5></div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead><tr><th>Data/Hora</th><th>Origem</th><th>Destino</th><th>Programa</th><th>Cabine</th><th>Pontos</th><th>Taxa</th><th>Link</th></tr></thead>
-                            <tbody id="tableLatestOffers"><tr><td colspan="8" class="text-center py-5"><div class="skeleton mx-auto" style="max-width:300px"></div></td></tr></tbody>
-                        </table>
+            
+            <!-- Filters Card -->
+            <div class="card card-gradient shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl gradient-text">🔍 Filtros</h2>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Data Início</span>
+                        </label>
+                        <input type="date" id="startDate" class="input input-bordered bg-slate-800 text-white" />
                     </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Data Fim</span>
+                        </label>
+                        <input type="date" id="endDate" class="input input-bordered bg-slate-800 text-white" />
+                    </div>
+                    <div class="form-control">
+                        <label class="cursor-pointer label">
+                            <span class="label-text text-gray-300">Descartar registros vazios</span>
+                            <input type="checkbox" id="discardEmpty" checked class="checkbox checkbox-primary" />
+                        </label>
+                    </div>
+                    <button id="btnRefresh" class="btn btn-accent mt-4">
+                        🔄 Atualizar Dados
+                    </button>
                 </div>
             </div>
-        </section>
-        <footer class="text-center py-4" style="color:rgba(255,255,255,0.5);font-size:0.875rem"><p class="mb-0"><i class="bi bi-heart-fill" style="color:var(--danger)"></i> Dashboard Premium • Atualização automática a cada 60 segundos</p></footer>
+        </div>
+        
+        <!-- KPI Cards -->
+        <div id="kpiContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" style="display:none;">
+            <div class="stat-card rounded-xl p-6">
+                <div class="text-gray-400 text-sm mb-2">Total de Ofertas</div>
+                <div id="kpiTotal" class="text-4xl font-bold gradient-text">0</div>
+            </div>
+            <div class="stat-card rounded-xl p-6">
+                <div class="text-gray-400 text-sm mb-2">Última Atualização</div>
+                <div id="kpiLastUpdate" class="text-lg font-semibold text-white">--</div>
+            </div>
+            <div class="stat-card rounded-xl p-6">
+                <div class="text-gray-400 text-sm mb-2">Ofertas (24h)</div>
+                <div id="kpi24h" class="text-4xl font-bold gradient-text">0</div>
+            </div>
+            <div class="stat-card rounded-xl p-6">
+                <div class="text-gray-400 text-sm mb-2">Pico/Hora</div>
+                <div id="kpiPeak" class="text-4xl font-bold gradient-text">0</div>
+            </div>
+        </div>
+        
+        <!-- Charts Grid -->
+        <div id="chartsContainer" class="grid md:grid-cols-2 gap-6 mb-8" style="display:none;">
+            <!-- Hourly Chart -->
+            <div class="chart-container">
+                <h3 class="text-xl font-bold text-white mb-4">📊 Ofertas por Hora (24h)</h3>
+                <div id="chartHourly" style="height: 300px;"></div>
+            </div>
+            
+            <!-- Daily Chart -->
+            <div class="chart-container">
+                <h3 class="text-xl font-bold text-white mb-4">📈 Ofertas por Dia (5 dias)</h3>
+                <div id="chartDaily" style="height: 300px;"></div>
+            </div>
+            
+            <!-- Cabin Chart -->
+            <div class="chart-container">
+                <h3 class="text-xl font-bold text-white mb-4">✈️ Distribuição por Cabine</h3>
+                <div id="chartCabin" style="height: 300px;"></div>
+            </div>
+            
+            <!-- Program Chart -->
+            <div class="chart-container">
+                <h3 class="text-xl font-bold text-white mb-4">🎫 Distribuição por Programa</h3>
+                <div id="chartProgram" style="height: 300px;"></div>
+            </div>
+            
+            <!-- Top Origins -->
+            <div class="chart-container">
+                <h3 class="text-xl font-bold text-white mb-4">�� Top 5 Origens</h3>
+                <div id="chartOrigins" style="height: 300px;"></div>
+            </div>
+            
+            <!-- Top Destinations -->
+            <div class="chart-container">
+                <h3 class="text-xl font-bold text-white mb-4">🎯 Top 5 Destinos</h3>
+                <div id="chartDestinations" style="height: 300px;"></div>
+            </div>
+        </div>
+        
+        <!-- Data Quality -->
+        <div id="qualityContainer" class="chart-container mb-8" style="display:none;">
+            <h3 class="text-xl font-bold text-white mb-4">🔍 Qualidade dos Dados</h3>
+            <div id="chartQuality" style="height: 300px;"></div>
+        </div>
+        
+        <!-- Latest Offers Table -->
+        <div id="tableContainer" class="table-container p-6" style="display:none;">
+            <h3 class="text-2xl font-bold text-white mb-4">🆕 Últimas 10 Ofertas</h3>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr class="text-gray-300">
+                            <th>Origem</th>
+                            <th>Destino</th>
+                            <th>Milhas</th>
+                            <th>Cabine</th>
+                            <th>Programa</th>
+                            <th>Link</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="text-white">
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-        <script>
-Chart.defaults.color='rgba(255,255,255,0.8)';Chart.defaults.borderColor='rgba(255,255,255,0.1)';Chart.defaults.font.family="'Inter',sans-serif";const Utils={pickField(o,v){if(!o)return null;for(const x of v)if(o.hasOwnProperty(x))return o[x];return null},isEmpty(v){return v===null||v===undefined||v===''},formatDateTime(d){if(!d)return'N/A';try{const dt=new Date(d);if(isNaN(dt.getTime()))return'Inválida';return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(dt)}catch(e){return'Erro'}},formatDate(d){if(!d)return'N/A';try{const dt=new Date(d);if(isNaN(dt.getTime()))return'Inválida';return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}).format(dt)}catch(e){return'Erro'}},bucketByHour(data){const now=new Date(),hours=[],counts=new Array(24).fill(0);for(let i=23;i>=0;i--){const h=new Date(now);h.setHours(now.getHours()-i,0,0,0);hours.push(h)}data.forEach(r=>{const c=this.pickField(r,['created_at','Created_At','createdAt']);if(!c)return;const rd=new Date(c);if(isNaN(rd.getTime()))return;const diff=now-rd,ha=Math.floor(diff/36e5);if(ha>=0&&ha<24)counts[23-ha]++});return{labels:hours.map(h=>h.getHours().toString().padStart(2,'0')+':00'),counts}},bucketByDay(data,n=5){const today=new Date();today.setHours(0,0,0,0);const days=[],counts=new Array(n).fill(0);for(let i=n-1;i>=0;i--){const d=new Date(today);d.setDate(today.getDate()-i);days.push(d)}data.forEach(r=>{const c=this.pickField(r,['created_at','Created_At','createdAt']);if(!c)return;const rd=new Date(c);if(isNaN(rd.getTime()))return;rd.setHours(0,0,0,0);days.forEach((d,i)=>{if(rd.getTime()===d.getTime())counts[i]++})});return{labels:days.map(d=>this.formatDate(d)),counts}},groupCount(data,fv){const c={};data.forEach(r=>{const v=this.pickField(r,fv);if(this.isEmpty(v))return;const k=String(v).trim();c[k]=(c[k]||0)+1});return c},topN(c,n=5){const e=Object.entries(c);e.sort((a,b)=>b[1]-a[1]);const t=e.slice(0,n);return{labels:t.map(([l])=>l),values:t.map(([,c])=>c)}},applyFilters(data,f={}){const{dateStart,dateEnd,discardEmpty}=f;return data.filter(r=>{const c=this.pickField(r,['created_at','Created_At','createdAt']);if(dateStart||dateEnd){if(!c)return false;const rd=new Date(c);if(isNaN(rd.getTime()))return false;if(dateStart&&rd<new Date(dateStart))return false;if(dateEnd&&rd>new Date(dateEnd))return false}if(discardEmpty){const o=this.pickField(r,['ORigem','Origem','origem']),d=this.pickField(r,['Destino','destino']),p=this.pickField(r,['programa_emissao','Programa_Emissao','programa']);if(this.isEmpty(o)||this.isEmpty(d)||this.isEmpty(p)||this.isEmpty(c))return false}return true})},calculateDataQuality(data){if(!data||!data.length)return{labels:[],percentages:[]};const t=data.length;let m={o:0,d:0,p:0,l:0};data.forEach(r=>{if(this.isEmpty(this.pickField(r,['ORigem','Origem','origem'])))m.o++;if(this.isEmpty(this.pickField(r,['Destino','destino'])))m.d++;if(this.isEmpty(this.pickField(r,['programa_emissao','Programa_Emissao','programa'])))m.p++;if(this.isEmpty(this.pickField(r,['link_acesso','Link_Acesso','link'])))m.l++});return{labels:['Origem','Destino','Programa','Link'],percentages:[((m.o/t)*100).toFixed(1),((m.d/t)*100).toFixed(1),((m.p/t)*100).toFixed(1),((m.l/t)*100).toFixed(1)]}},formatNumber(n){return n===null||n===undefined?'N/A':new Intl.NumberFormat('pt-BR').format(n)},showAlert(msg,type='info'){const c=document.getElementById('alertContainer');if(!c)return;const id='alert-'+Date.now();c.insertAdjacentHTML('beforeend',`<div class="alert alert-${type} alert-dismissible fade show" role="alert" id="${id}">${msg}<button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button></div>`);setTimeout(()=>{const e=document.getElementById(id);if(e)bootstrap.Alert.getOrCreateInstance(e).close()},5e3)},updateStatusBadge(s,m=''){const b=document.getElementById('statusBadge'),txt=document.getElementById('statusText');if(!b||!txt)return;const map={waiting:{class:'status-waiting',text:m||'Aguardando Configuração'},connecting:{class:'status-connecting',text:m||'Conectando...'},connected:{class:'status-connected',text:m||'Conectado'},error:{class:'status-error',text:m||'Erro de Conexão'}};const cfg=map[s]||map.waiting;b.className=`status-indicator ${cfg.class}`;txt.textContent=cfg.text}};const SupabaseManager={client:null,subscription:null,supabaseUrl:'',tableName:'Rotas Encontradas',initialize(k,u=null){try{if(!k||!k.trim())return console.error('Key vazia'),false;if(u&&u.trim())this.supabaseUrl=u.trim();if(!this.supabaseUrl)return Utils.showAlert('Configure a URL do Supabase','warning'),false;const{createClient}=supabase;return this.client=createClient(this.supabaseUrl,k.trim()),console.log('Cliente OK'),true}catch(e){return console.error('Erro:',e),Utils.showAlert('Erro: '+e.message,'danger'),false}},async testConnection(){if(!this.client)return Utils.showAlert('Configure URL e key','warning'),false;try{Utils.updateStatusBadge('connecting','Testando...');const{data,error,count}=await this.client.from(this.tableName).select('*',{count:'exact',head:true});if(error){console.error('Erro:',error);if(error.code==='42P01')Utils.showAlert(`Tabela "${this.tableName}" não encontrada`,'danger');else if(error.code==='PGRST301'||error.message.includes('JWT'))Utils.showAlert('Erro 401: Anon key inválida ou RLS bloqueando','danger');else Utils.showAlert(`Erro: ${error.message}`,'danger');return Utils.updateStatusBadge('error'),false}return Utils.showAlert(`✅ Conectado! ${count||0} registros encontrados`,'success'),Utils.updateStatusBadge('connected'),true}catch(e){return console.error('Erro:',e),Utils.showAlert('Erro: '+e.message,'danger'),Utils.updateStatusBadge('error'),false}},async fetchData(lim=1e4){if(!this.client)return console.error('Cliente não OK'),[],try{console.log('Buscando...');const{data,error}=await this.client.from(this.tableName).select('*').order('created_at',{ascending:false}).limit(lim);if(error){console.error('Erro:',error);if(error.code==='PGRST301'||error.message.includes('JWT'))Utils.showAlert('Erro 401','danger');else Utils.showAlert('Erro: '+error.message,'danger');return Utils.updateStatusBadge('error'),[]}return console.log(`${data.length} registros`),data||[]}catch(e){return console.error('Erro:',e),Utils.showAlert('Erro: '+e.message,'danger'),[]}},subscribeToChanges(cb){if(!this.client)return;try{if(this.subscription)this.subscription.unsubscribe();this.subscription=this.client.channel('rotas-changes').on('postgres_changes',{event:'*',schema:'public',table:this.tableName},p=>{console.log('Realtime:',p);if(cb)cb(p)}).subscribe(s=>console.log('Status:',s))}catch(e){console.error('Realtime erro:',e)}},saveAnonKey(k){localStorage.setItem('supabase_anon_key',k)},loadAnonKey(){return localStorage.getItem('supabase_anon_key')},clearAnonKey(){localStorage.removeItem('supabase_anon_key')},saveSupabaseUrl(u){localStorage.setItem('supabase_url',u)},loadSupabaseUrl(){return localStorage.getItem('supabase_url')}};const ChartManager={charts:{},destroyChart(id){if(this.charts[id])try{this.charts[id].destroy(),delete this.charts[id]}catch(e){console.error(`Erro ${id}:`,e)}},createHourlyChart(d){const id='chartHourly';this.destroyChart(id);const ctx=document.getElementById(id);if(!ctx)return;this.charts[id]=new Chart(ctx,{type:'line',data:{labels:d.labels,datasets:[{label:'Ofertas',data:d.counts,borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,0.3)',borderWidth:3,fill:true,tension:0.4,pointRadius:5,pointHoverRadius:8,pointBackgroundColor:'#6366f1',pointBorderColor:'#fff',pointBorderWidth:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'rgba(255,255,255,0.9)',font:{size:14,weight:'600'},padding:20}},tooltip:{backgroundColor:'rgba(15,23,42,0.95)',titleColor:'#fff',bodyColor:'#fff',borderColor:'#6366f1',borderWidth:2,padding:15,cornerRadius:12,titleFont:{size:14,weight:'700'},bodyFont:{size:13}}},scales:{y:{beginAtZero:true,ticks:{color:'rgba(255,255,255,0.8)',font:{size:12,weight:'600'},padding:10},grid:{color:'rgba(255,255,255,0.1)',drawBorder:false}},x:{ticks:{color:'rgba(255,255,255,0.8)',font:{size:11,weight:'600'},maxRotation:45,minRotation:45},grid:{display:false}}}}})},createDailyChart(d){const id='chartDaily';this.destroyChart(id);const ctx=document.getElementById(id);if(!ctx)return;this.charts[id]=new Chart(ctx,{type:'bar',data:{labels:d.labels,datasets:[{label:'Ofertas',data:d.counts,backgroundColor:['rgba(99,102,241,0.8)','rgba(139,92,246,0.8)','rgba(236,72,153,0.8)','rgba(251,146,60,0.8)','rgba(34,197,94,0.8)'],borderRadius:10,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(15,23,42,0.95)',titleColor:'#fff',bodyColor:'#fff',borderColor:'#8b5cf6',borderWidth:2,padding:15,cornerRadius:12}},scales:{y:{beginAtZero:true,ticks:{color:'rgba(255,255,255,0.8)',font:{size:12,weight:'600'}},grid:{color:'rgba(255,255,255,0.1)'}},x:{ticks:{color:'rgba(255,255,255,0.8)',font:{size:11,weight:'600'}},grid:{display:false}}}}})},createPieChart(id,d,lbl='Dist'){this.destroyChart(id);const ctx=document.getElementById(id);if(!ctx)return;if(!d.labels||!d.labels.length)return void(ctx.parentElement.innerHTML='<p class="text-center" style="color:rgba(255,255,255,0.5);padding:3rem">Sem dados</p>');const cols=['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#06b6d4','#a855f7','#f43f5e'];this.charts[id]=new Chart(ctx,{type:'doughnut',data:{labels:d.labels,datasets:[{label:lbl,data:d.values,backgroundColor:cols,borderWidth:4,borderColor:'rgba(15,23,42,0.8)',hoverBorderWidth:6,hoverBorderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'rgba(255,255,255,0.9)',padding:20,font:{size:13,weight:'600'},usePointStyle:true,pointStyle:'circle'}},tooltip:{backgroundColor:'rgba(15,23,42,0.95)',titleColor:'#fff',bodyColor:'#fff',borderColor:cols[0],borderWidth:2,padding:15,cornerRadius:12}},cutout:'60%'}})},createHorizontalBarChart(id,d,lbl='Top'){this.destroyChart(id);const ctx=document.getElementById(id);if(!ctx)return;if(!d.labels||!d.labels.length)return void(ctx.parentElement.innerHTML='<p class="text-center" style="color:rgba(255,255,255,0.5);padding:3rem">Sem dados</p>');this.charts[id]=new Chart(ctx,{type:'bar',data:{labels:d.labels,datasets:[{label:lbl,data:d.values,backgroundColor:['rgba(99,102,241,0.9)','rgba(139,92,246,0.9)','rgba(236,72,153,0.9)','rgba(251,146,60,0.9)','rgba(34,197,94,0.9)'],borderRadius:8}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(15,23,42,0.95)',titleColor:'#fff',bodyColor:'#fff',borderColor:'#10b981',borderWidth:2,padding:15,cornerRadius:12}},scales:{x:{beginAtZero:true,ticks:{color:'rgba(255,255,255,0.8)',font:{size:12,weight:'600'}},grid:{color:'rgba(255,255,255,0.1)'}},y:{ticks:{color:'rgba(255,255,255,0.8)',font:{size:12,weight:'700'}},grid:{display:false}}}}})},createQualityChart(d){const id='chartQuality';this.destroyChart(id);const ctx=document.getElementById(id);if(!ctx)return;this.charts[id]=new Chart(ctx,{type:'bar',data:{labels:d.labels,datasets:[{label:'% Campos Faltando',data:d.percentages,backgroundColor:['rgba(239,68,68,0.8)','rgba(245,158,11,0.8)','rgba(6,182,212,0.8)','rgba(139,92,246,0.8)'],borderRadius:10}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(15,23,42,0.95)',titleColor:'#fff',bodyColor:'#fff',borderColor:'#ef4444',borderWidth:2,padding:15,cornerRadius:12,callbacks:{label:c=>c.parsed.y+'%'}}},scales:{y:{beginAtZero:true,max:100,ticks:{color:'rgba(255,255,255,0.8)',font:{size:12,weight:'600'},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.1)'}},x:{ticks:{color:'rgba(255,255,255,0.8)',font:{size:11,weight:'600'}},grid:{display:false}}}}})},destroyAll(){Object.keys(this.charts).forEach(id=>this.destroyChart(id))}};const App={data:[],filteredData:[],filters:{dateStart:null,dateEnd:null,discardEmpty:false},pollingInterval:null,async init(){console.log('Iniciando Dashboard Premium...');const k=SupabaseManager.loadAnonKey(),u=SupabaseManager.loadSupabaseUrl();if(u)document.getElementById('inputSupabaseUrl').value=u,SupabaseManager.supabaseUrl=u;if(k)document.getElementById('inputAnonKey').value=k,SupabaseManager.initialize(k,u)&&await this.loadData();else Utils.updateStatusBadge('waiting');this.setupEventListeners(),this.startPolling(),SupabaseManager.subscribeToChanges(()=>{console.log('Realtime!'),this.loadData()})},setupEventListeners(){document.getElementById('btnToggleKey').addEventListener('click',()=>{const i=document.getElementById('inputAnonKey'),ic=document.querySelector('#btnToggleKey i');i.type==='password'?(i.type='text',ic.className='bi bi-eye-slash'):(i.type='password',ic.className='bi bi-eye')});document.getElementById('btnSaveKey').addEventListener('click',async()=>{const k=document.getElementById('inputAnonKey').value.trim(),u=document.getElementById('inputSupabaseUrl').value.trim();if(!k||!u)return Utils.showAlert('Preencha URL e key','warning');SupabaseManager.saveAnonKey(k),SupabaseManager.saveSupabaseUrl(u),SupabaseManager.initialize(k,u)?(Utils.showAlert('✅ Configuração salva!','success'),await this.loadData()):Utils.showAlert('❌ Erro ao inicializar','danger')});document.getElementById('btnClearKey').addEventListener('click',()=>{SupabaseManager.clearAnonKey(),document.getElementById('inputAnonKey').value='',document.getElementById('inputSupabaseUrl').value='',Utils.showAlert('🗑️ Configuração removida','info'),Utils.updateStatusBadge('waiting'),this.clearDashboard()});document.getElementById('btnTestConnection').addEventListener('click',async()=>{const k=document.getElementById('inputAnonKey').value.trim(),u=document.getElementById('inputSupabaseUrl').value.trim();if(!k||!u)return Utils.showAlert('Preencha URL e key','warning');SupabaseManager.client||SupabaseManager.initialize(k,u),await SupabaseManager.testConnection()});document.getElementById('btnApplyFilters').addEventListener('click',()=>this.applyFilters());document.getElementById('btnRefresh').addEventListener('click',()=>this.loadData())},async loadData(){if(!SupabaseManager.client)return console.warn('Cliente não OK');try{Utils.updateStatusBadge('connecting','Carregando...'),this.data=await SupabaseManager.fetchData(),this.data.length||Utils.showAlert('⚠️ Nenhum dado','warning'),Utils.updateStatusBadge('connected'),this.applyFilters()}catch(e){console.error('Erro:',e),Utils.showAlert('❌ Erro: '+e.message,'danger'),Utils.updateStatusBadge('error')}},applyFilters(){const ds=document.getElementById('filterDateStart').value,de=document.getElementById('filterDateEnd').value,d=document.getElementById('checkDiscardEmpty').checked;this.filters={dateStart:ds||null,dateEnd:de||null,discardEmpty:d},this.filteredData=Utils.applyFilters(this.data,this.filters),console.log(`${this.filteredData.length} registros`),this.renderDashboard()},renderDashboard(){this.renderKPIs(),this.renderCharts(),this.renderTable()},renderKPIs(){const d=this.filteredData;document.getElementById('kpiTotal').textContent=Utils.formatNumber(d.length);const now=new Date();document.getElementById('kpiLastUpdate').textContent=Utils.formatDateTime(now);const l24=d.filter(r=>{const c=Utils.pickField(r,['created_at','Created_At','createdAt']);if(!c)return false;const dt=new Date(c);return!isNaN(dt.getTime())&&(now-dt)<=864e5});document.getElementById('kpi24h').textContent=Utils.formatNumber(l24.length);const hd=Utils.bucketByHour(l24),pk=Math.max(...hd.counts,0);document.getElementById('kpiPeak').textContent=Utils.formatNumber(pk)},renderCharts(){const d=this.filteredData;ChartManager.createHourlyChart(Utils.bucketByHour(d)),ChartManager.createDailyChart(Utils.bucketByDay(d,5)),ChartManager.createPieChart('chartCabin',{labels:Object.keys(Utils.groupCount(d,['tipo_cabine','Tipo_Cabine','cabine'])),values:Object.values(Utils.groupCount(d,['tipo_cabine','Tipo_Cabine','cabine']))},'Cabine'),ChartManager.createPieChart('chartProgram',{labels:Object.keys(Utils.groupCount(d,['programa_emissao','Programa_Emissao','programa'])),values:Object.values(Utils.groupCount(d,['programa_emissao','Programa_Emissao','programa']))},'Programa'),ChartManager.createHorizontalBarChart('chartOrigins',Utils.topN(Utils.groupCount(d,['ORigem','Origem','origem']),5),'Origens'),ChartManager.createHorizontalBarChart('chartDestinations',Utils.topN(Utils.groupCount(d,['Destino','destino']),5),'Destinos'),ChartManager.createQualityChart(Utils.calculateDataQuality(d))},renderTable(){const tb=document.getElementById('tableLatestOffers'),d=[...this.filteredData].sort((a,b)=>{const da=Utils.pickField(a,['created_at','Created_At','createdAt']),db=Utils.pickField(b,['created_at','Created_At','createdAt']);return!da||!db?0:new Date(db)-new Date(da)}).slice(0,10);if(!d.length)return void(tb.innerHTML='<tr><td colspan="8" class="text-center py-5" style="color:rgba(255,255,255,0.5)">Sem ofertas disponíveis</td></tr>');tb.innerHTML=d.map(r=>{const c=Utils.pickField(r,['created_at','Created_At','createdAt']),o=Utils.pickField(r,['ORigem','Origem','origem']),de=Utils.pickField(r,['Destino','destino']),p=Utils.pickField(r,['programa_emissao','Programa_Emissao','programa']),ca=Utils.pickField(r,['tipo_cabine','Tipo_Cabine','cabine']),pt=Utils.pickField(r,['pontos','Pontos']),tx=Utils.pickField(r,['taxa','Taxa']),lk=Utils.pickField(r,['link_acesso','Link_Acesso','link']);return`<tr><td>${Utils.formatDateTime(c)}</td><td><strong>${o||'N/A'}</strong></td><td><strong>${de||'N/A'}</strong></td><td>${p||'N/A'}</td><td>${ca||'N/A'}</td><td><span style="color:#10b981;font-weight:700">${Utils.formatNumber(pt)}</span></td><td><span style="color:#f59e0b;font-weight:700">R$ ${Utils.formatNumber(tx)}</span></td><td>${lk?`<a href="${lk}" target="_blank" class="btn btn-sm btn-primary"><i class="bi bi-box-arrow-up-right"></i></a>`:'N/A'}</td></tr>`}).join('')},clearDashboard(){this.data=[],this.filteredData=[],document.getElementById('kpiTotal').innerHTML='<div class="skeleton"></div>',document.getElementById('kpiLastUpdate').innerHTML='<div class="skeleton"></div>',document.getElementById('kpi24h').innerHTML='<div class="skeleton"></div>',document.getElementById('kpiPeak').innerHTML='<div class="skeleton"></div>',ChartManager.destroyAll(),document.getElementById('tableLatestOffers').innerHTML='<tr><td colspan="8" class="text-center py-5"><div class="skeleton mx-auto" style="max-width:300px"></div></td></tr>'},startPolling(){this.pollingInterval=setInterval(()=>{console.log('Polling...'),SupabaseManager.client&&this.loadData()},6e4)},stopPolling(){this.pollingInterval&&(clearInterval(this.pollingInterval),this.pollingInterval=null)}};document.addEventListener('DOMContentLoaded',()=>App.init());
+    
+    <script>
+    // ============= UTILITIES =============
+    const Utils = {
+        showToast(msg, type='info') {
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500',
+                warning: 'bg-yellow-500'
+            };
+            const toast = document.createElement('div');
+            toast.className = `alert ${colors[type]} text-white fixed top-4 right-4 max-w-sm z-50 shadow-2xl`;
+            toast.innerHTML = `<span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        },
+        
+        formatDate(d) {
+            if (!d) return '--';
+            const dt = new Date(d);
+            return dt.toLocaleString('pt-BR', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        },
+        
+        normalizeField(obj, field) {
+            const variations = [field, field.toLowerCase(), field.charAt(0).toUpperCase() + field.slice(1).toLowerCase()];
+            for (let v of variations) {
+                if (obj[v] !== undefined && obj[v] !== null) return obj[v];
+            }
+            return null;
+        }
+    };
+    
+    // ============= SUPABASE MANAGER =============
+    const SupabaseManager = {
+        client: null,
+        supabaseUrl: '',
+        tableName: 'Rotas Encontradas',
+        
+        initialize(key, url = null) {
+            if (url && url.trim()) this.supabaseUrl = url.trim();
+            const { createClient } = supabase;
+            this.client = createClient(this.supabaseUrl, key.trim());
+            return true;
+        },
+        
+        async fetchData(filters = {}) {
+            let query = this.client.from(this.tableName).select('*');
+            if (filters.startDate) query = query.gte('created_at', filters.startDate);
+            if (filters.endDate) query = query.lte('created_at', filters.endDate);
+            const { data, error } = await query.order('created_at', { ascending: false });
+            if (error) throw error;
+            return data || [];
+        },
+        
+        subscribeToChanges(callback) {
+            return this.client
+                .channel('table-changes')
+                .on('postgres_changes', 
+                    { event: '*', schema: 'public', table: this.tableName }, 
+                    callback)
+                .subscribe();
+        }
+    };
+    
+    // ============= CHART MANAGER =============
+    const ChartManager = {
+        charts: {},
+        
+        destroy(id) {
+            if (this.charts[id]) {
+                this.charts[id].destroy();
+                delete this.charts[id];
+            }
+        },
+        
+        createLineChart(id, data) {
+            this.destroy(id);
+            const options = {
+                series: [{
+                    name: 'Ofertas',
+                    data: data.values
+                }],
+                chart: {
+                    type: 'area',
+                    height: 300,
+                    background: 'transparent',
+                    toolbar: { show: false },
+                    animations: { enabled: true, speed: 800 }
+                },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 3, colors: ['#667eea'] },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.2,
+                        stops: [0, 90, 100]
+                    }
+                },
+                xaxis: {
+                    categories: data.labels,
+                    labels: { style: { colors: '#94a3b8' } }
+                },
+                yaxis: {
+                    labels: { style: { colors: '#94a3b8' } }
+                },
+                grid: {
+                    borderColor: '#334155',
+                    strokeDashArray: 5
+                },
+                tooltip: {
+                    theme: 'dark',
+                    x: { show: true }
+                }
+            };
+            this.charts[id] = new ApexCharts(document.getElementById(id), options);
+            this.charts[id].render();
+        },
+        
+        createBarChart(id, data) {
+            this.destroy(id);
+            const options = {
+                series: [{
+                    name: 'Ofertas',
+                    data: data.values
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 300,
+                    background: 'transparent',
+                    toolbar: { show: false },
+                    animations: { enabled: true, speed: 800 }
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '60%',
+                        borderRadius: 8,
+                        dataLabels: { position: 'top' }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    offsetY: -20,
+                    style: { colors: ['#fff'] }
+                },
+                colors: ['#764ba2'],
+                xaxis: {
+                    categories: data.labels,
+                    labels: { style: { colors: '#94a3b8' } }
+                },
+                yaxis: {
+                    labels: { style: { colors: '#94a3b8' } }
+                },
+                grid: {
+                    borderColor: '#334155',
+                    strokeDashArray: 5
+                },
+                tooltip: {
+                    theme: 'dark'
+                }
+            };
+            this.charts[id] = new ApexCharts(document.getElementById(id), options);
+            this.charts[id].render();
+        },
+        
+        createDonutChart(id, data) {
+            this.destroy(id);
+            const options = {
+                series: data.values,
+                chart: {
+                    type: 'donut',
+                    height: 300,
+                    background: 'transparent',
+                    animations: { enabled: true, speed: 800 }
+                },
+                labels: data.labels,
+                colors: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b', '#fa709a'],
+                dataLabels: {
+                    enabled: true,
+                    style: { colors: ['#fff'] }
+                },
+                legend: {
+                    position: 'bottom',
+                    labels: { colors: '#94a3b8' }
+                },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '65%',
+                            labels: {
+                                show: true,
+                                name: { color: '#94a3b8' },
+                                value: { color: '#fff', fontSize: '22px' },
+                                total: {
+                                    show: true,
+                                    color: '#94a3b8',
+                                    label: 'Total'
+                                }
+                            }
+                        }
+                    }
+                },
+                tooltip: {
+                    theme: 'dark'
+                }
+            };
+            this.charts[id] = new ApexCharts(document.getElementById(id), options);
+            this.charts[id].render();
+        }
+    };
+    
+    // ============= MAIN APP =============
+    const App = {
+        data: [],
+        pollInterval: null,
+        subscription: null,
+        
+        init() {
+            this.loadConfig();
+            this.bindEvents();
+            this.setDefaultDates();
+        },
+        
+        loadConfig() {
+            const url = localStorage.getItem('supabaseUrl');
+            const key = localStorage.getItem('supabaseKey');
+            if (url) document.getElementById('supabaseUrl').value = url;
+            if (key) document.getElementById('supabaseKey').value = key;
+            if (url && key) this.connect();
+        },
+        
+        setDefaultDates() {
+            const end = new Date();
+            const start = new Date();
+            start.setDate(start.getDate() - 5);
+            document.getElementById('startDate').value = start.toISOString().split('T')[0];
+            document.getElementById('endDate').value = end.toISOString().split('T')[0];
+        },
+        
+        bindEvents() {
+            document.getElementById('btnConnect').addEventListener('click', () => this.connect());
+            document.getElementById('btnRefresh').addEventListener('click', () => this.refresh());
+        },
+        
+        connect() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+            
+            if (!url || !key) {
+                Utils.showToast('❌ Preencha URL e Key!', 'error');
+                return;
+            }
+            
+            try {
+                SupabaseManager.initialize(key, url);
+                localStorage.setItem('supabaseUrl', url);
+                localStorage.setItem('supabaseKey', key);
+                Utils.showToast('✅ Conectado com sucesso!', 'success');
+                this.refresh();
+                this.startPolling();
+                this.subscribeRealtime();
+            } catch (e) {
+                Utils.showToast('❌ Erro ao conectar: ' + e.message, 'error');
+            }
+        },
+        
+        async refresh() {
+            const filters = {
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value
+            };
+            
+            try {
+                let data = await SupabaseManager.fetchData(filters);
+                
+                if (document.getElementById('discardEmpty').checked) {
+                    data = data.filter(r => {
+                        const origem = Utils.normalizeField(r, 'origem');
+                        const destino = Utils.normalizeField(r, 'destino');
+                        return origem && destino && origem.trim() && destino.trim();
+                    });
+                }
+                
+                this.data = data;
+                this.render();
+                Utils.showToast('✅ Dados atualizados!', 'success');
+            } catch (e) {
+                Utils.showToast('❌ Erro ao buscar dados: ' + e.message, 'error');
+            }
+        },
+        
+        startPolling() {
+            if (this.pollInterval) clearInterval(this.pollInterval);
+            this.pollInterval = setInterval(() => this.refresh(), 60000);
+        },
+        
+        subscribeRealtime() {
+            if (this.subscription) this.subscription.unsubscribe();
+            this.subscription = SupabaseManager.subscribeToChanges(() => this.refresh());
+        },
+        
+        render() {
+            this.renderKPIs();
+            this.renderCharts();
+            this.renderTable();
+            
+            document.getElementById('kpiContainer').style.display = 'grid';
+            document.getElementById('chartsContainer').style.display = 'grid';
+            document.getElementById('qualityContainer').style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'block';
+        },
+        
+        renderKPIs() {
+            const total = this.data.length;
+            const last24h = this.data.filter(r => {
+                const created = new Date(r.created_at);
+                const now = new Date();
+                return (now - created) < 24 * 60 * 60 * 1000;
+            }).length;
+            
+            const hourCounts = {};
+            this.data.forEach(r => {
+                const h = new Date(r.created_at).getHours();
+                hourCounts[h] = (hourCounts[h] || 0) + 1;
+            });
+            const peak = Math.max(...Object.values(hourCounts), 0);
+            
+            const lastUpdate = this.data.length > 0 ? 
+                Utils.formatDate(this.data[0].created_at) : '--';
+            
+            document.getElementById('kpiTotal').textContent = total;
+            document.getElementById('kpi24h').textContent = last24h;
+            document.getElementById('kpiPeak').textContent = peak;
+            document.getElementById('kpiLastUpdate').textContent = lastUpdate;
+        },
+        
+        renderCharts() {
+            // Hourly
+            const hourCounts = {};
+            for (let h = 0; h < 24; h++) hourCounts[h] = 0;
+            this.data.filter(r => {
+                const created = new Date(r.created_at);
+                const now = new Date();
+                return (now - created) < 24 * 60 * 60 * 1000;
+            }).forEach(r => {
+                const h = new Date(r.created_at).getHours();
+                hourCounts[h]++;
+            });
+            ChartManager.createLineChart('chartHourly', {
+                labels: Object.keys(hourCounts).map(h => `${h}h`),
+                values: Object.values(hourCounts)
+            });
+            
+            // Daily
+            const dayCounts = {};
+            this.data.forEach(r => {
+                const day = new Date(r.created_at).toISOString().split('T')[0];
+                dayCounts[day] = (dayCounts[day] || 0) + 1;
+            });
+            const sortedDays = Object.keys(dayCounts).sort().slice(-5);
+            ChartManager.createBarChart('chartDaily', {
+                labels: sortedDays,
+                values: sortedDays.map(d => dayCounts[d])
+            });
+            
+            // Cabin
+            const cabinCounts = {};
+            this.data.forEach(r => {
+                const cabin = Utils.normalizeField(r, 'cabine') || 'Desconhecido';
+                cabinCounts[cabin] = (cabinCounts[cabin] || 0) + 1;
+            });
+            ChartManager.createDonutChart('chartCabin', {
+                labels: Object.keys(cabinCounts),
+                values: Object.values(cabinCounts)
+            });
+            
+            // Program
+            const programCounts = {};
+            this.data.forEach(r => {
+                const prog = Utils.normalizeField(r, 'programa') || 'Desconhecido';
+                programCounts[prog] = (programCounts[prog] || 0) + 1;
+            });
+            ChartManager.createDonutChart('chartProgram', {
+                labels: Object.keys(programCounts),
+                values: Object.values(programCounts)
+            });
+            
+            // Top Origins
+            const originCounts = {};
+            this.data.forEach(r => {
+                const orig = Utils.normalizeField(r, 'origem') || 'Desconhecido';
+                originCounts[orig] = (originCounts[orig] || 0) + 1;
+            });
+            const topOrigins = Object.entries(originCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            ChartManager.createBarChart('chartOrigins', {
+                labels: topOrigins.map(x => x[0]),
+                values: topOrigins.map(x => x[1])
+            });
+            
+            // Top Destinations
+            const destCounts = {};
+            this.data.forEach(r => {
+                const dest = Utils.normalizeField(r, 'destino') || 'Desconhecido';
+                destCounts[dest] = (destCounts[dest] || 0) + 1;
+            });
+            const topDests = Object.entries(destCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            ChartManager.createBarChart('chartDestinations', {
+                labels: topDests.map(x => x[0]),
+                values: topDests.map(x => x[1])
+            });
+            
+            // Data Quality
+            const totalRecords = this.data.length;
+            const validRecords = this.data.filter(r => {
+                const origem = Utils.normalizeField(r, 'origem');
+                const destino = Utils.normalizeField(r, 'destino');
+                return origem && destino && origem.trim() && destino.trim();
+            }).length;
+            const invalidRecords = totalRecords - validRecords;
+            
+            ChartManager.createDonutChart('chartQuality', {
+                labels: ['Válidos', 'Inválidos/Vazios'],
+                values: [validRecords, invalidRecords]
+            });
+        },
+        
+        renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            this.data.slice(0, 10).forEach(r => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${Utils.normalizeField(r, 'origem') || '--'}</td>
+                    <td>${Utils.normalizeField(r, 'destino') || '--'}</td>
+                    <td>${Utils.normalizeField(r, 'milhas') || '--'}</td>
+                    <td>${Utils.normalizeField(r, 'cabine') || '--'}</td>
+                    <td>${Utils.normalizeField(r, 'programa') || '--'}</td>
+                    <td>
+                        ${Utils.normalizeField(r, 'link') ? 
+                            `<a href="${Utils.normalizeField(r, 'link')}" target="_blank" class="btn btn-xs btn-primary">🔗 Ver</a>` : 
+                            '--'}
+                    </td>
+                `;
+            });
+        }
+    };
+    
+    // Initialize app
+    App.init();
     </script>
 </body>
 </html>
