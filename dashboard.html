@@ -15,6 +15,9 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -87,6 +90,53 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 1rem;
+        }
+
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9998;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-backdrop.active {
+            display: block;
+        }
+
+        .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 9999;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: rgba(51, 65, 85, 0.5);
+            border-radius: 10px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -249,13 +299,121 @@
                             <th>Valor</th>
                             <th>Cabine</th>
                             <th>Programa</th>
-                            <th>Link</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" class="text-white">
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Orçamento -->
+    <div id="modalOrcamento" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold gradient-text">✈️ Gerar Orçamento</h2>
+                <button onclick="closeOrcamentoModal()" class="btn btn-sm btn-circle btn-ghost text-gray-400">✕</button>
+            </div>
+
+            <!-- Dados da Oferta (Read-only) -->
+            <div class="mb-6">
+                <h3 class="text-lg font-bold text-white mb-3">📋 Dados da Viagem</h3>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <span class="text-gray-400">Origem:</span>
+                        <span id="modalOrigem" class="text-white font-semibold ml-2">--</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Destino:</span>
+                        <span id="modalDestino" class="text-white font-semibold ml-2">--</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Data Ida:</span>
+                        <span id="modalDataIda" class="text-white font-semibold ml-2">--</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Valor:</span>
+                        <span id="modalValor" class="text-green-400 font-semibold ml-2">--</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Cabine:</span>
+                        <span id="modalCabine" class="text-white font-semibold ml-2">--</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Rota:</span>
+                        <span id="modalRota" class="text-white font-semibold ml-2">--</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-gray-400">Programa:</span>
+                        <span id="modalPrograma" class="text-white font-semibold ml-2">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Formulário Cliente -->
+            <form id="formOrcamento" onsubmit="gerarPDF(event)">
+                <h3 class="text-lg font-bold text-white mb-3">👤 Dados do Cliente</h3>
+                
+                <div class="form-control mb-3">
+                    <label class="label">
+                        <span class="label-text text-gray-300">Nome Completo *</span>
+                    </label>
+                    <input type="text" id="clienteNome" required 
+                           class="input input-bordered bg-slate-800 text-white" 
+                           placeholder="João Silva" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Telefone *</span>
+                        </label>
+                        <input type="tel" id="clienteTelefone" required 
+                               class="input input-bordered bg-slate-800 text-white" 
+                               placeholder="(11) 99999-9999" />
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Email *</span>
+                        </label>
+                        <input type="email" id="clienteEmail" required 
+                               class="input input-bordered bg-slate-800 text-white" 
+                               placeholder="email@exemplo.com" />
+                    </div>
+                </div>
+
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text text-gray-300">Endereço *</span>
+                    </label>
+                    <input type="text" id="clienteEndereco" required 
+                           class="input input-bordered bg-slate-800 text-white" 
+                           placeholder="Rua, número, cidade - UF" />
+                </div>
+
+                <div class="divider"></div>
+
+                <h3 class="text-lg font-bold text-white mb-3">⚙️ Opções da Viagem</h3>
+
+                <div class="flex flex-col gap-2 mb-6">
+                    <label class="cursor-pointer label justify-start gap-3">
+                        <input type="checkbox" id="bagagemDespachada" class="checkbox checkbox-primary" />
+                        <span class="label-text text-gray-300">Bagagem Despachada</span>
+                    </label>
+                    <label class="cursor-pointer label justify-start gap-3">
+                        <input type="checkbox" id="temConexao" class="checkbox checkbox-primary" />
+                        <span class="label-text text-gray-300">Tem Conexão</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full pulse-glow">
+                    📄 Gerar Orçamento PDF
+                </button>
+            </form>
         </div>
     </div>
 
@@ -684,6 +842,7 @@
 
             displayData.forEach(r => {
                 const row = tbody.insertRow();
+                const offerData = JSON.stringify(r).replace(/"/g, '&quot;');
                 row.innerHTML = `
                     <td>${Utils.formatDateShort(r.created_at)}</td>
                     <td>${r.origem || '--'}</td>
@@ -693,9 +852,12 @@
                     <td>${r.tipo_cabine || '--'}</td>
                     <td>${r.programa_emissao || '--'}</td>
                     <td>
-                        ${r.link_acesso ? 
-                            `<a href="${r.link_acesso}" target="_blank" class="btn btn-xs btn-primary">🔗 Ver</a>` : 
-                            '--'}
+                        <div class="flex gap-1">
+                            ${r.link_acesso ? 
+                                `<a href="${r.link_acesso}" target="_blank" class="btn btn-xs btn-primary">🔗 Ver</a>` : 
+                                ''}
+                            <button onclick='openOrcamentoModal(${offerData})' class="btn btn-xs btn-accent">💼 Orçamento</button>
+                        </div>
                     </td>
                 `;
             });
@@ -708,6 +870,160 @@
             this.filterTable();
         }
     };
+
+    // ============= MODAL E PDF =============
+    let currentOffer = null;
+
+    function openOrcamentoModal(offer) {
+        currentOffer = offer;
+        
+        // Preencher dados da oferta
+        document.getElementById('modalOrigem').textContent = offer.origem || '--';
+        document.getElementById('modalDestino').textContent = offer.destino || '--';
+        document.getElementById('modalDataIda').textContent = offer.data_viagem ? new Date(offer.data_viagem).toLocaleDateString('pt-BR') : '--';
+        document.getElementById('modalValor').textContent = Utils.formatCurrency(offer.valor);
+        document.getElementById('modalCabine').textContent = offer.tipo_cabine || '--';
+        document.getElementById('modalRota').textContent = offer.rota || '--';
+        document.getElementById('modalPrograma').textContent = offer.programa_emissao || '--';
+        
+        // Limpar formulário
+        document.getElementById('formOrcamento').reset();
+        
+        // Mostrar modal
+        document.getElementById('modalOrcamento').classList.add('active');
+    }
+
+    function closeOrcamentoModal() {
+        document.getElementById('modalOrcamento').classList.remove('active');
+        currentOffer = null;
+    }
+
+    function gerarPDF(event) {
+        event.preventDefault();
+        
+        // Pegar dados do formulário
+        const nome = document.getElementById('clienteNome').value;
+        const telefone = document.getElementById('clienteTelefone').value;
+        const email = document.getElementById('clienteEmail').value;
+        const endereco = document.getElementById('clienteEndereco').value;
+        const bagagem = document.getElementById('bagagemDespachada').checked;
+        const conexao = document.getElementById('temConexao').checked;
+        
+        // Criar PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Configuração
+        const margin = 20;
+        let y = margin;
+        
+        // Cabeçalho
+        doc.setFillColor(102, 126, 234);
+        doc.rect(0, 0, 210, 40, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(24);
+        doc.setFont(undefined, 'bold');
+        doc.text('ORCAMENTO DE VIAGEM', margin, 25);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text('Dashboard Premium Milhas', margin, 33);
+        
+        y = 50;
+        doc.setTextColor(0, 0, 0);
+        
+        // Data do orçamento
+        doc.setFontSize(10);
+        doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 150, y);
+        y += 15;
+        
+        // Dados da Viagem
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('DADOS DA VIAGEM', margin, y);
+        y += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Origem: ${currentOffer.origem || '--'}`, margin, y);
+        y += 7;
+        doc.text(`Destino: ${currentOffer.destino || '--'}`, margin, y);
+        y += 7;
+        doc.text(`Data da Ida: ${currentOffer.data_viagem ? new Date(currentOffer.data_viagem).toLocaleDateString('pt-BR') : '--'}`, margin, y);
+        y += 7;
+        doc.text(`Valor: ${Utils.formatCurrency(currentOffer.valor)}`, margin, y);
+        y += 7;
+        doc.text(`Tipo de Cabine: ${currentOffer.tipo_cabine || '--'}`, margin, y);
+        y += 7;
+        doc.text(`Rota: ${currentOffer.rota || '--'}`, margin, y);
+        y += 7;
+        doc.text(`Programa de Emissao: ${currentOffer.programa_emissao || '--'}`, margin, y);
+        y += 15;
+        
+        // Linha divisória
+        doc.setDrawColor(102, 126, 234);
+        doc.line(margin, y, 190, y);
+        y += 10;
+        
+        // Dados do Cliente
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('DADOS DO CLIENTE', margin, y);
+        y += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Nome: ${nome}`, margin, y);
+        y += 7;
+        doc.text(`Telefone: ${telefone}`, margin, y);
+        y += 7;
+        doc.text(`Email: ${email}`, margin, y);
+        y += 7;
+        doc.text(`Endereco: ${endereco}`, margin, y);
+        y += 15;
+        
+        // Linha divisória
+        doc.line(margin, y, 190, y);
+        y += 10;
+        
+        // Opções da Viagem
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('OPCOES DA VIAGEM', margin, y);
+        y += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Bagagem Despachada: ${bagagem ? 'Sim' : 'Nao'}`, margin, y);
+        y += 7;
+        doc.text(`Tem Conexao: ${conexao ? 'Sim' : 'Nao'}`, margin, y);
+        y += 20;
+        
+        // Rodapé
+        doc.setFillColor(240, 240, 240);
+        doc.rect(0, 270, 210, 27, 'F');
+        
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text('Este orcamento foi gerado automaticamente pelo Dashboard Premium Milhas', 105, 280, { align: 'center' });
+        doc.text('Valido por 7 dias a partir da data de emissao', 105, 285, { align: 'center' });
+        
+        // Salvar PDF
+        const fileName = `Orcamento_${currentOffer.origem}_${currentOffer.destino}_${new Date().getTime()}.pdf`;
+        doc.save(fileName);
+        
+        // Fechar modal
+        Utils.showToast('✅ PDF gerado com sucesso!', 'success');
+        closeOrcamentoModal();
+    }
+
+    // Fechar modal ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'modalOrcamento') {
+            closeOrcamentoModal();
+        }
+    });
 
     // ============= AUTH & INITIALIZATION =============
     async function checkAuth() {
