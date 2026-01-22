@@ -88,6 +88,8 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 1rem;
         }
+
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -95,6 +97,12 @@
     <!-- Hero Section -->
     <div class="hero-gradient py-8">
         <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center mb-4">
+                <div id="userEmail" class="text-gray-400 text-sm"></div>
+                <button onclick="handleLogout()" class="btn btn-sm btn-ghost text-gray-400 hover:text-white">
+                    🚪 Sair
+                </button>
+            </div>
             <h1 class="text-5xl font-bold gradient-text text-center mb-2">Dashboard Premium Milhas</h1>
             <p class="text-center text-gray-400 text-lg">Monitoramento em Tempo Real de Ofertas</p>
         </div>
@@ -103,7 +111,7 @@
     <!-- Configuration Section -->
     <div class="container mx-auto px-4 py-8">
         <div class="grid md:grid-cols-2 gap-6 mb-8">
-            <!-- Config Card -->
+            <!-- Config Card - Agora apenas visualização -->
             <div class="card card-gradient shadow-xl">
                 <div class="card-body">
                     <h2 class="card-title text-2xl gradient-text">⚙️ Configuração</h2>
@@ -111,19 +119,19 @@
                         <label class="label">
                             <span class="label-text text-gray-300">Supabase URL</span>
                         </label>
-                        <input type="text" id="supabaseUrl" placeholder="https://seu-projeto.supabase.co"
-                               class="input input-bordered bg-slate-800 text-white" />
+                        <input type="text" id="supabaseUrl" readonly
+                               class="input input-bordered bg-slate-800 text-white opacity-70" />
                     </div>
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text text-gray-300">Supabase Anon Key</span>
                         </label>
-                        <input type="password" id="supabaseKey" placeholder="eyJhbGc..."
-                               class="input input-bordered bg-slate-800 text-white" />
+                        <input type="password" id="supabaseKey" readonly
+                               class="input input-bordered bg-slate-800 text-white opacity-70" />
                     </div>
-                    <button id="btnConnect" class="btn btn-primary mt-4 pulse-glow">
-                        🔌 Conectar ao Supabase
-                    </button>
+                    <div class="alert alert-info mt-4">
+                        <span class="text-sm">✅ Configurações carregadas do seu perfil</span>
+                    </div>
                 </div>
             </div>
 
@@ -239,6 +247,10 @@
     </div>
 
     <script>
+    // Configuração do Supabase para autenticação
+    const AUTH_SUPABASE_URL = 'https://eeyobwuzbloopynmflva.supabase.co'; // TROCAR
+    const AUTH_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVleW9id3V6Ymxvb3B5bm1mbHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Mzk5NjQsImV4cCI6MjA4NDIxNTk2NH0.LLNFPYGDSVflT2_YWlYeQ4LWxYnyyFy322Ny3TS6D1E'; // TROCAR
+
     // ============= UTILITIES =============
     const Utils = {
         showToast(msg, type='info') {
@@ -276,8 +288,14 @@
     // ============= SUPABASE MANAGER =============
     const SupabaseManager = {
         client: null,
+        authClient: null,
         supabaseUrl: '',
         tableName: 'Rotas Encontradas',
+
+        initializeAuth() {
+            const { createClient } = supabase;
+            this.authClient = createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
+        },
 
         initialize(key, url = null) {
             if (url && url.trim()) this.supabaseUrl = url.trim();
@@ -461,17 +479,8 @@
         subscription: null,
 
         init() {
-            this.loadConfig();
             this.bindEvents();
             this.setDefaultDates();
-        },
-
-        loadConfig() {
-            const url = localStorage.getItem('supabaseUrl');
-            const key = localStorage.getItem('supabaseKey');
-            if (url) document.getElementById('supabaseUrl').value = url;
-            if (key) document.getElementById('supabaseKey').value = key;
-            if (url && key) this.connect();
         },
 
         setDefaultDates() {
@@ -483,30 +492,7 @@
         },
 
         bindEvents() {
-            document.getElementById('btnConnect').addEventListener('click', () => this.connect());
             document.getElementById('btnRefresh').addEventListener('click', () => this.refresh());
-        },
-
-        connect() {
-            const url = document.getElementById('supabaseUrl').value.trim();
-            const key = document.getElementById('supabaseKey').value.trim();
-
-            if (!url || !key) {
-                Utils.showToast('❌ Preencha URL e Key!', 'error');
-                return;
-            }
-
-            try {
-                SupabaseManager.initialize(key, url);
-                localStorage.setItem('supabaseUrl', url);
-                localStorage.setItem('supabaseKey', key);
-                Utils.showToast('✅ Conectado com sucesso!', 'success');
-                this.refresh();
-                this.startPolling();
-                this.subscribeRealtime();
-            } catch (e) {
-                Utils.showToast('❌ Erro ao conectar: ' + e.message, 'error');
-            }
         },
 
         async refresh() {
@@ -675,8 +661,57 @@
         }
     };
 
-    // Initialize app
-    App.init();
+    // ============= AUTH & INITIALIZATION =============
+    async function checkAuthAndLoadConfig() {
+        SupabaseManager.initializeAuth();
+        
+        const { data: { session } } = await SupabaseManager.authClient.auth.getSession();
+        
+        if (!session) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // Mostrar email do usuário
+        document.getElementById('userEmail').textContent = session.user.email;
+
+        // Buscar configurações do usuário
+        const { data: config, error } = await SupabaseManager.authClient
+            .from('user_configs')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+
+        if (error || !config) {
+            Utils.showToast('❌ Configurações não encontradas!', 'error');
+            setTimeout(() => window.location.href = 'login.html', 2000);
+            return;
+        }
+
+        // Carregar configurações automaticamente
+        document.getElementById('supabaseUrl').value = config.supabase_url;
+        document.getElementById('supabaseKey').value = '••••••••••••••••';
+
+        // Auto-conectar
+        SupabaseManager.initialize(config.supabase_key, config.supabase_url);
+        
+        App.init();
+        App.refresh();
+        App.startPolling();
+        App.subscribeRealtime();
+        
+        Utils.showToast('✅ Bem-vindo! Dados carregados.', 'success');
+    }
+
+    async function handleLogout() {
+        SupabaseManager.initializeAuth();
+        await SupabaseManager.authClient.auth.signOut();
+        localStorage.clear();
+        window.location.href = 'login.html';
+    }
+
+    // Iniciar
+    checkAuthAndLoadConfig();
     </script>
 </body>
 </html>
