@@ -198,7 +198,6 @@
             </div>
         </div>
 
-        <!-- Latest Offers Table -->
         <!-- Offers Table -->
         <div id="tableContainer" class="table-container p-6" style="display:none;">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
@@ -247,6 +246,7 @@
                             <th>Origem</th>
                             <th>Destino</th>
                             <th>Pontos</th>
+                            <th>Valor</th>
                             <th>Cabine</th>
                             <th>Programa</th>
                             <th>Link</th>
@@ -298,6 +298,14 @@
             return dt.toLocaleDateString('pt-BR', {
                 day: '2-digit', month: '2-digit'
             });
+        },
+
+        formatCurrency(value) {
+            if (!value || value === 0) return '--';
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
         }
     };
 
@@ -473,7 +481,7 @@
         }
     };
 
-// ============= MAIN APP =============
+    // ============= MAIN APP =============
     const App = {
         data: [],
         filteredData: [],
@@ -640,9 +648,9 @@
             });
         },
 
- renderTable() {
-            this.filteredData = this.data; // Resetar dados filtrados
-            this.filterTable(); // Aplicar filtros
+        renderTable() {
+            this.filteredData = this.data;
+            this.filterTable();
         },
 
         filterTable() {
@@ -670,7 +678,7 @@
 
             if (displayData.length === 0) {
                 const row = tbody.insertRow();
-                row.innerHTML = `<td colspan="7" class="text-center text-gray-400 py-8">Nenhuma oferta encontrada</td>`;
+                row.innerHTML = `<td colspan="8" class="text-center text-gray-400 py-8">Nenhuma oferta encontrada</td>`;
                 return;
             }
 
@@ -681,6 +689,7 @@
                     <td>${r.origem || '--'}</td>
                     <td>${r.destino || '--'}</td>
                     <td>${r.pontos || '--'}</td>
+                    <td class="font-semibold text-green-400">${Utils.formatCurrency(r.valor)}</td>
                     <td>${r.tipo_cabine || '--'}</td>
                     <td>${r.programa_emissao || '--'}</td>
                     <td>
