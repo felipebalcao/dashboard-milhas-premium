@@ -199,8 +199,46 @@
         </div>
 
         <!-- Latest Offers Table -->
+        <!-- Offers Table -->
         <div id="tableContainer" class="table-container p-6" style="display:none;">
-            <h3 class="text-2xl font-bold text-white mb-4">🆕 Últimas 10 Ofertas</h3>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                <h3 class="text-2xl font-bold text-white">📋 Ofertas</h3>
+                
+                <!-- Filtros da Tabela -->
+                <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                    <!-- Filtro Origem -->
+                    <input type="text" id="filterOrigem" placeholder="🔍 Origem" 
+                           class="input input-sm input-bordered bg-slate-800 text-white w-32" 
+                           oninput="App.filterTable()" />
+                    
+                    <!-- Filtro Destino -->
+                    <input type="text" id="filterDestino" placeholder="🔍 Destino" 
+                           class="input input-sm input-bordered bg-slate-800 text-white w-32" 
+                           oninput="App.filterTable()" />
+                    
+                    <!-- Quantidade -->
+                    <select id="tableLimit" class="select select-sm select-bordered bg-slate-800 text-white" 
+                            onchange="App.filterTable()">
+                        <option value="10">10 ofertas</option>
+                        <option value="20">20 ofertas</option>
+                        <option value="50">50 ofertas</option>
+                        <option value="100">100 ofertas</option>
+                        <option value="all">Todas</option>
+                    </select>
+                    
+                    <!-- Botão Limpar Filtros -->
+                    <button class="btn btn-sm btn-ghost text-gray-400" onclick="App.clearTableFilters()">
+                        ✖️ Limpar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Info de registros -->
+            <div class="text-gray-400 text-sm mb-2">
+                Mostrando <span id="tableCount" class="text-white font-bold">0</span> de 
+                <span id="tableTotal" class="text-white font-bold">0</span> ofertas
+            </div>
+
             <div class="overflow-x-auto">
                 <table class="table table-zebra w-full">
                     <thead>
@@ -435,9 +473,10 @@
         }
     };
 
-    // ============= MAIN APP =============
+// ============= MAIN APP =============
     const App = {
         data: [],
+        filteredData: [],
         pollInterval: null,
         subscription: null,
 
@@ -601,11 +640,41 @@
             });
         },
 
-        renderTable() {
+ renderTable() {
+            this.filteredData = this.data; // Resetar dados filtrados
+            this.filterTable(); // Aplicar filtros
+        },
+
+        filterTable() {
+            const origem = document.getElementById('filterOrigem').value.toLowerCase().trim();
+            const destino = document.getElementById('filterDestino').value.toLowerCase().trim();
+            const limit = document.getElementById('tableLimit').value;
+
+            // Filtrar dados
+            let filtered = this.data.filter(r => {
+                const origemMatch = !origem || (r.origem && r.origem.toLowerCase().includes(origem));
+                const destinoMatch = !destino || (r.destino && r.destino.toLowerCase().includes(destino));
+                return origemMatch && destinoMatch;
+            });
+
+            // Aplicar limite
+            const displayData = limit === 'all' ? filtered : filtered.slice(0, parseInt(limit));
+
+            // Atualizar contadores
+            document.getElementById('tableCount').textContent = displayData.length;
+            document.getElementById('tableTotal').textContent = this.data.length;
+
+            // Renderizar tabela
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
-            this.data.slice(0, 10).forEach(r => {
+            if (displayData.length === 0) {
+                const row = tbody.insertRow();
+                row.innerHTML = `<td colspan="7" class="text-center text-gray-400 py-8">Nenhuma oferta encontrada</td>`;
+                return;
+            }
+
+            displayData.forEach(r => {
                 const row = tbody.insertRow();
                 row.innerHTML = `
                     <td>${Utils.formatDateShort(r.created_at)}</td>
@@ -621,6 +690,13 @@
                     </td>
                 `;
             });
+        },
+
+        clearTableFilters() {
+            document.getElementById('filterOrigem').value = '';
+            document.getElementById('filterDestino').value = '';
+            document.getElementById('tableLimit').value = '10';
+            this.filterTable();
         }
     };
 
