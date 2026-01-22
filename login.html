@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Dashboard Premium Milhas</title>
+
+    <!-- Tailwind CSS + DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.6.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.6); }
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    
+    <div class="container mx-auto px-4 max-w-md">
+        <!-- Logo/Title -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold gradient-text mb-2">Dashboard Milhas</h1>
+            <p class="text-gray-400">Sistema de Monitoramento Premium</p>
+        </div>
+
+        <!-- Login/Register Card -->
+        <div class="card card-gradient shadow-2xl">
+            <div class="card-body">
+                
+                <!-- Tabs -->
+                <div class="tabs tabs-boxed bg-slate-800/50 mb-6">
+                    <a id="tabLogin" class="tab tab-active" onclick="switchTab('login')">Login</a>
+                    <a id="tabRegister" class="tab" onclick="switchTab('register')">Cadastrar</a>
+                </div>
+
+                <!-- Login Form -->
+                <div id="loginForm">
+                    <h2 class="text-2xl font-bold text-white mb-4">Entre na sua conta</h2>
+                    
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Email</span>
+                        </label>
+                        <input type="email" id="loginEmail" placeholder="seu@email.com" 
+                               class="input input-bordered bg-slate-800 text-white" />
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Senha</span>
+                        </label>
+                        <input type="password" id="loginPassword" placeholder="••••••••" 
+                               class="input input-bordered bg-slate-800 text-white" />
+                    </div>
+
+                    <button id="btnLogin" class="btn btn-primary w-full pulse-glow" onclick="handleLogin()">
+                        🔐 Entrar
+                    </button>
+                </div>
+
+                <!-- Register Form -->
+                <div id="registerForm" class="hidden">
+                    <h2 class="text-2xl font-bold text-white mb-4">Criar nova conta</h2>
+                    
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Email</span>
+                        </label>
+                        <input type="email" id="registerEmail" placeholder="seu@email.com" 
+                               class="input input-bordered bg-slate-800 text-white" />
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Senha</span>
+                        </label>
+                        <input type="password" id="registerPassword" placeholder="••••••••" 
+                               class="input input-bordered bg-slate-800 text-white" />
+                    </div>
+
+                    <div class="divider text-gray-400">Configuração do Supabase</div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Supabase URL</span>
+                        </label>
+                        <input type="text" id="registerSupabaseUrl" placeholder="https://seu-projeto.supabase.co" 
+                               class="input input-bordered bg-slate-800 text-white" />
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Supabase Anon Key</span>
+                        </label>
+                        <input type="password" id="registerSupabaseKey" placeholder="eyJhbGc..." 
+                               class="input input-bordered bg-slate-800 text-white" />
+                    </div>
+
+                    <button id="btnRegister" class="btn btn-primary w-full pulse-glow" onclick="handleRegister()">
+                        ✨ Criar Conta
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-6 text-gray-500 text-sm">
+            <p>Desenvolvido com 💜 para monitoramento de milhas</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuração do Supabase (Admin - para autenticação)
+        const SUPABASE_URL = 'https://eeyobwuzbloopynmflva.supabase.co'; // TROCAR PELA SUA URL
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVleW9id3V6Ymxvb3B5bm1mbHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Mzk5NjQsImV4cCI6MjA4NDIxNTk2NH0.LLNFPYGDSVflT2_YWlYeQ4LWxYnyyFy322Ny3TS6D1E'; // TROCAR PELA SUA KEY
+
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Verificar se já está logado
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        checkAuth();
+
+        // Switch entre Login e Cadastro
+        function switchTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabLogin = document.getElementById('tabLogin');
+            const tabRegister = document.getElementById('tabRegister');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                tabLogin.classList.add('tab-active');
+                tabRegister.classList.remove('tab-active');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                tabLogin.classList.remove('tab-active');
+                tabRegister.classList.add('tab-active');
+            }
+        }
+
+        // Toast de notificação
+        function showToast(msg, type = 'info') {
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500',
+                warning: 'bg-yellow-500'
+            };
+            const toast = document.createElement('div');
+            toast.className = `alert ${colors[type]} text-white fixed top-4 right-4 max-w-sm z-50 shadow-2xl`;
+            toast.innerHTML = `<span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Login
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showToast('❌ Preencha todos os campos!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnLogin');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Entrando...';
+
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) throw error;
+
+                showToast('✅ Login realizado com sucesso!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+
+            } catch (error) {
+                showToast('❌ Erro: ' + error.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '🔐 Entrar';
+            }
+        }
+
+        // Cadastro
+        async function handleRegister() {
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const supabaseUrl = document.getElementById('registerSupabaseUrl').value.trim();
+            const supabaseKey = document.getElementById('registerSupabaseKey').value.trim();
+
+            if (!email || !password) {
+                showToast('❌ Preencha email e senha!', 'error');
+                return;
+            }
+
+            if (!supabaseUrl || !supabaseKey) {
+                showToast('❌ Preencha as configurações do Supabase!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnRegister');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Criando conta...';
+
+            try {
+                // 1. Criar usuário
+                const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password
+                });
+
+                if (authError) throw authError;
+
+                // 2. Salvar configurações do usuário
+                const { error: configError } = await supabaseClient
+                    .from('user_configs')
+                    .insert({
+                        user_id: authData.user.id,
+                        supabase_url: supabaseUrl,
+                        supabase_key: supabaseKey
+                    });
+
+                if (configError) throw configError;
+
+                showToast('✅ Conta criada com sucesso! Faça login.', 'success');
+                
+                // Limpar campos e voltar para login
+                document.getElementById('registerEmail').value = '';
+                document.getElementById('registerPassword').value = '';
+                document.getElementById('registerSupabaseUrl').value = '';
+                document.getElementById('registerSupabaseKey').value = '';
+                
+                setTimeout(() => {
+                    switchTab('login');
+                }, 2000);
+
+            } catch (error) {
+                showToast('❌ Erro: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '✨ Criar Conta';
+            }
+        }
+
+        // Enter para submit
+        document.getElementById('loginEmail').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('loginPassword').focus();
+        });
+        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+    </script>
+</body>
+</html>
