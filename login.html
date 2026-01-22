@@ -111,27 +111,9 @@
 
                     <div class="form-control mb-4">
                         <label class="label">
-                            <span class="label-text text-gray-300">Senha</span>
+                            <span class="label-text text-gray-300">Senha (mínimo 6 caracteres)</span>
                         </label>
                         <input type="password" id="registerPassword" placeholder="••••••••" 
-                               class="input input-bordered bg-slate-800 text-white" />
-                    </div>
-
-                    <div class="divider text-gray-400">Configuração do Supabase</div>
-
-                    <div class="form-control mb-4">
-                        <label class="label">
-                            <span class="label-text text-gray-300">Supabase URL</span>
-                        </label>
-                        <input type="text" id="registerSupabaseUrl" placeholder="https://seu-projeto.supabase.co" 
-                               class="input input-bordered bg-slate-800 text-white" />
-                    </div>
-
-                    <div class="form-control mb-4">
-                        <label class="label">
-                            <span class="label-text text-gray-300">Supabase Anon Key</span>
-                        </label>
-                        <input type="password" id="registerSupabaseKey" placeholder="eyJhbGc..." 
                                class="input input-bordered bg-slate-800 text-white" />
                     </div>
 
@@ -150,12 +132,12 @@
     </div>
 
     <script>
-        // Configuração do Supabase (Admin - para autenticação)
-        const SUPABASE_URL = 'https://eeyobwuzbloopynmflva.supabase.co'; // TROCAR PELA SUA URL
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVleW9id3V6Ymxvb3B5bm1mbHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Mzk5NjQsImV4cCI6MjA4NDIxNTk2NH0.LLNFPYGDSVflT2_YWlYeQ4LWxYnyyFy322Ny3TS6D1E'; // TROCAR PELA SUA KEY
+        // Configuração do Supabase
+        const SUPABASE_URL = 'https://eeyobwuzbloopynmflva.supabase.co'; // TROCAR
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVleW9id3V6Ymxvb3B5bm1mbHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Mzk5NjQsImV4cCI6MjA4NDIxNTk2NH0.LLNFPYGDSVflT2_YWlYeQ4LWxYnyyFy322Ny3TS6D1E'; // TROCAR
 
         const { createClient } = supabase;
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Verificar se já está logado
         async function checkAuth() {
@@ -240,16 +222,14 @@
         async function handleRegister() {
             const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value;
-            const supabaseUrl = document.getElementById('registerSupabaseUrl').value.trim();
-            const supabaseKey = document.getElementById('registerSupabaseKey').value.trim();
 
             if (!email || !password) {
-                showToast('❌ Preencha email e senha!', 'error');
+                showToast('❌ Preencha todos os campos!', 'error');
                 return;
             }
 
-            if (!supabaseUrl || !supabaseKey) {
-                showToast('❌ Preencha as configurações do Supabase!', 'error');
+            if (password.length < 6) {
+                showToast('❌ A senha deve ter no mínimo 6 caracteres!', 'error');
                 return;
             }
 
@@ -258,32 +238,18 @@
             btn.innerHTML = '⏳ Criando conta...';
 
             try {
-                // 1. Criar usuário
-                const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+                const { data, error } = await supabaseClient.auth.signUp({
                     email: email,
                     password: password
                 });
 
-                if (authError) throw authError;
+                if (error) throw error;
 
-                // 2. Salvar configurações do usuário
-                const { error: configError } = await supabaseClient
-                    .from('user_configs')
-                    .insert({
-                        user_id: authData.user.id,
-                        supabase_url: supabaseUrl,
-                        supabase_key: supabaseKey
-                    });
-
-                if (configError) throw configError;
-
-                showToast('✅ Conta criada com sucesso! Faça login.', 'success');
+                showToast('✅ Conta criada! Verifique seu email para confirmar.', 'success');
                 
                 // Limpar campos e voltar para login
                 document.getElementById('registerEmail').value = '';
                 document.getElementById('registerPassword').value = '';
-                document.getElementById('registerSupabaseUrl').value = '';
-                document.getElementById('registerSupabaseKey').value = '';
                 
                 setTimeout(() => {
                     switchTab('login');
@@ -303,6 +269,12 @@
         });
         document.getElementById('loginPassword').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleLogin();
+        });
+        document.getElementById('registerEmail').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('registerPassword').focus();
+        });
+        document.getElementById('registerPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleRegister();
         });
     </script>
 </body>

@@ -88,8 +88,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 1rem;
         }
-
-        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -108,37 +106,14 @@
         </div>
     </div>
 
-    <!-- Configuration Section -->
+    <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
-        <div class="grid md:grid-cols-2 gap-6 mb-8">
-            <!-- Config Card - Agora apenas visualização -->
-            <div class="card card-gradient shadow-xl">
-                <div class="card-body">
-                    <h2 class="card-title text-2xl gradient-text">⚙️ Configuração</h2>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-gray-300">Supabase URL</span>
-                        </label>
-                        <input type="text" id="supabaseUrl" readonly
-                               class="input input-bordered bg-slate-800 text-white opacity-70" />
-                    </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-gray-300">Supabase Anon Key</span>
-                        </label>
-                        <input type="password" id="supabaseKey" readonly
-                               class="input input-bordered bg-slate-800 text-white opacity-70" />
-                    </div>
-                    <div class="alert alert-info mt-4">
-                        <span class="text-sm">✅ Configurações carregadas do seu perfil</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Filters Card -->
-            <div class="card card-gradient shadow-xl">
-                <div class="card-body">
-                    <h2 class="card-title text-2xl gradient-text">🔍 Filtros</h2>
+        
+        <!-- Filters Card -->
+        <div class="card card-gradient shadow-xl mb-8 max-w-2xl mx-auto">
+            <div class="card-body">
+                <h2 class="card-title text-2xl gradient-text">🔍 Filtros</h2>
+                <div class="grid md:grid-cols-2 gap-4">
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text text-gray-300">Data Início</span>
@@ -151,16 +126,16 @@
                         </label>
                         <input type="date" id="endDate" class="input input-bordered bg-slate-800 text-white" />
                     </div>
-                    <div class="form-control">
-                        <label class="cursor-pointer label">
-                            <span class="label-text text-gray-300">Descartar registros vazios</span>
-                            <input type="checkbox" id="discardEmpty" checked class="checkbox checkbox-primary" />
-                        </label>
-                    </div>
-                    <button id="btnRefresh" class="btn btn-accent mt-4">
-                        🔄 Atualizar Dados
-                    </button>
                 </div>
+                <div class="form-control">
+                    <label class="cursor-pointer label">
+                        <span class="label-text text-gray-300">Descartar registros vazios</span>
+                        <input type="checkbox" id="discardEmpty" checked class="checkbox checkbox-primary" />
+                    </label>
+                </div>
+                <button id="btnRefresh" class="btn btn-accent w-full mt-4">
+                    🔄 Atualizar Dados
+                </button>
             </div>
         </div>
 
@@ -247,9 +222,12 @@
     </div>
 
     <script>
-    // Configuração do Supabase para autenticação
-    const AUTH_SUPABASE_URL = 'https://eeyobwuzbloopynmflva.supabase.co'; // TROCAR
-    const AUTH_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVleW9id3V6Ymxvb3B5bm1mbHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Mzk5NjQsImV4cCI6MjA4NDIxNTk2NH0.LLNFPYGDSVflT2_YWlYeQ4LWxYnyyFy322Ny3TS6D1E'; // TROCAR
+    // Configuração do Supabase
+    const SUPABASE_URL = 'https://eeyobwuzbloopynmflva.supabase.co'; // TROCAR
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVleW9id3V6Ymxvb3B5bm1mbHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Mzk5NjQsImV4cCI6MjA4NDIxNTk2NH0.LLNFPYGDSVflT2_YWlYeQ4LWxYnyyFy322Ny3TS6D1E'; // TROCAR
+
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // ============= UTILITIES =============
     const Utils = {
@@ -285,27 +263,12 @@
         }
     };
 
-    // ============= SUPABASE MANAGER =============
-    const SupabaseManager = {
-        client: null,
-        authClient: null,
-        supabaseUrl: '',
+    // ============= DATA MANAGER =============
+    const DataManager = {
         tableName: 'Rotas Encontradas',
 
-        initializeAuth() {
-            const { createClient } = supabase;
-            this.authClient = createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
-        },
-
-        initialize(key, url = null) {
-            if (url && url.trim()) this.supabaseUrl = url.trim();
-            const { createClient } = supabase;
-            this.client = createClient(this.supabaseUrl, key.trim());
-            return true;
-        },
-
         async fetchData(filters = {}) {
-            let query = this.client.from(this.tableName).select('*');
+            let query = supabaseClient.from(this.tableName).select('*');
             if (filters.startDate) query = query.gte('created_at', filters.startDate + 'T00:00:00');
             if (filters.endDate) query = query.lte('created_at', filters.endDate + 'T23:59:59');
             const { data, error } = await query.order('created_at', { ascending: false });
@@ -314,7 +277,7 @@
         },
 
         subscribeToChanges(callback) {
-            return this.client
+            return supabaseClient
                 .channel('table-changes')
                 .on('postgres_changes',
                     { event: '*', schema: 'public', table: this.tableName },
@@ -502,7 +465,7 @@
             };
 
             try {
-                let data = await SupabaseManager.fetchData(filters);
+                let data = await DataManager.fetchData(filters);
 
                 if (document.getElementById('discardEmpty').checked) {
                     data = data.filter(r => {
@@ -525,7 +488,7 @@
 
         subscribeRealtime() {
             if (this.subscription) this.subscription.unsubscribe();
-            this.subscription = SupabaseManager.subscribeToChanges(() => this.refresh());
+            this.subscription = DataManager.subscribeToChanges(() => this.refresh());
         },
 
         render() {
@@ -662,10 +625,8 @@
     };
 
     // ============= AUTH & INITIALIZATION =============
-    async function checkAuthAndLoadConfig() {
-        SupabaseManager.initializeAuth();
-        
-        const { data: { session } } = await SupabaseManager.authClient.auth.getSession();
+    async function checkAuth() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
         
         if (!session) {
             window.location.href = 'login.html';
@@ -675,43 +636,22 @@
         // Mostrar email do usuário
         document.getElementById('userEmail').textContent = session.user.email;
 
-        // Buscar configurações do usuário
-        const { data: config, error } = await SupabaseManager.authClient
-            .from('user_configs')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single();
-
-        if (error || !config) {
-            Utils.showToast('❌ Configurações não encontradas!', 'error');
-            setTimeout(() => window.location.href = 'login.html', 2000);
-            return;
-        }
-
-        // Carregar configurações automaticamente
-        document.getElementById('supabaseUrl').value = config.supabase_url;
-        document.getElementById('supabaseKey').value = '••••••••••••••••';
-
-        // Auto-conectar
-        SupabaseManager.initialize(config.supabase_key, config.supabase_url);
-        
+        // Inicializar app
         App.init();
         App.refresh();
         App.startPolling();
         App.subscribeRealtime();
         
-        Utils.showToast('✅ Bem-vindo! Dados carregados.', 'success');
+        Utils.showToast('✅ Bem-vindo!', 'success');
     }
 
     async function handleLogout() {
-        SupabaseManager.initializeAuth();
-        await SupabaseManager.authClient.auth.signOut();
-        localStorage.clear();
+        await supabaseClient.auth.signOut();
         window.location.href = 'login.html';
     }
 
     // Iniciar
-    checkAuthAndLoadConfig();
+    checkAuth();
     </script>
 </body>
 </html>
