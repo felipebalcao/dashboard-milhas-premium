@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Companhias - Dashboard Premium</title>
+
+    <!-- Tailwind CSS + DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.6.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.6); }
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .companhia-card {
+            transition: all 0.3s ease;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .companhia-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .logo-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            background: white;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <div class="hero-gradient py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center mb-4">
+                <a href="dashboard.html" class="btn btn-sm btn-ghost text-gray-400 hover:text-white">
+                    ← Voltar ao Dashboard
+                </a>
+                <button onclick="handleLogout()" class="btn btn-sm btn-ghost text-gray-400 hover:text-white">
+                    🚪 Sair
+                </button>
+            </div>
+            <h1 class="text-5xl font-bold gradient-text text-center mb-2">Gerenciar Companhias</h1>
+            <p class="text-center text-gray-400 text-lg">Cadastre logos e informações das companhias aéreas</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        
+        <!-- Formulário de Nova Companhia -->
+        <div class="card card-gradient shadow-xl mb-8 max-w-2xl mx-auto">
+            <div class="card-body">
+                <h2 class="card-title text-2xl gradient-text mb-4">✈️ Nova Companhia</h2>
+                
+                <form id="formCompanhia" onsubmit="salvarCompanhia(event)">
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Nome da Companhia *</span>
+                        </label>
+                        <input type="text" id="nomeCompanhia" required 
+                               class="input input-bordered bg-slate-800 text-white" 
+                               placeholder="Ex: LATAM, Gol, Azul..." />
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Logo da Companhia *</span>
+                        </label>
+                        <input type="file" id="logoFile" accept="image/*" required
+                               class="file-input file-input-bordered bg-slate-800 text-white w-full" 
+                               onchange="previewLogo(event)" />
+                        <label class="label">
+                            <span class="label-text-alt text-gray-400">Formatos: PNG, JPG, SVG (max 2MB)</span>
+                        </label>
+                    </div>
+
+                    <!-- Preview do Logo -->
+                    <div id="logoPreviewContainer" class="mb-4 hidden">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Preview:</span>
+                        </label>
+                        <img id="logoPreview" class="logo-preview" />
+                    </div>
+
+                    <button type="submit" id="btnSalvar" class="btn btn-primary w-full pulse-glow">
+                        💾 Salvar Companhia
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista de Companhias -->
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl font-bold gradient-text mb-6">📋 Companhias Cadastradas</h2>
+            
+            <div id="companhiasList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Companhias serão carregadas aqui -->
+            </div>
+
+            <div id="emptyState" class="text-center py-12 text-gray-400" style="display:none;">
+                <p class="text-xl">Nenhuma companhia cadastrada ainda</p>
+                <p class="text-sm mt-2">Cadastre a primeira companhia acima!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Configuração do Supabase
+    const SUPABASE_URL = 'https://eeyobwuzbloopynmflva.supabase.co'; // TROCAR
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVleW9id3V6Ymxvb3B5bm1mbHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Mzk5NjQsImV4cCI6MjA4NDIxNTk2NH0.LLNFPYGDSVflT2_YWlYeQ4LWxYnyyFy322Ny3TS6D1E'; // TROCAR
+
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ============= UTILITIES =============
+    function showToast(msg, type='info') {
+        const colors = {
+            success: 'bg-green-500',
+            error: 'bg-red-500',
+            info: 'bg-blue-500',
+            warning: 'bg-yellow-500'
+        };
+        const toast = document.createElement('div');
+        toast.className = `alert ${colors[type]} text-white fixed top-4 right-4 max-w-sm z-50 shadow-2xl`;
+        toast.innerHTML = `<span>${msg}</span>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ============= PREVIEW DO LOGO =============
+    function previewLogo(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // Verificar tamanho (max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                showToast('❌ Arquivo muito grande! Máximo 2MB', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('logoPreview').src = e.target.result;
+                document.getElementById('logoPreviewContainer').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // ============= SALVAR COMPANHIA =============
+    async function salvarCompanhia(event) {
+        event.preventDefault();
+
+        const nome = document.getElementById('nomeCompanhia').value.trim();
+        const logoFile = document.getElementById('logoFile').files[0];
+
+        if (!nome || !logoFile) {
+            showToast('❌ Preencha todos os campos!', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('btnSalvar');
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Salvando...';
+
+        try {
+            // 1. Upload do logo para o Storage
+            const fileExt = logoFile.name.split('.').pop();
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            
+            const { data: uploadData, error: uploadError } = await supabaseClient
+                .storage
+                .from('companhias-logos')
+                .upload(fileName, logoFile);
+
+            if (uploadError) throw uploadError;
+
+            // 2. Pegar URL pública do logo
+            const { data: { publicUrl } } = supabaseClient
+                .storage
+                .from('companhias-logos')
+                .getPublicUrl(fileName);
+
+            // 3. Salvar companhia no banco
+            const { data, error } = await supabaseClient
+                .from('companhias')
+                .insert({
+                    nome: nome,
+                    logo_url: publicUrl
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            showToast('✅ Companhia cadastrada com sucesso!', 'success');
+            
+            // Limpar formulário
+            document.getElementById('formCompanhia').reset();
+            document.getElementById('logoPreviewContainer').classList.add('hidden');
+            
+            // Recarregar lista
+            carregarCompanhias();
+
+        } catch (error) {
+            showToast('❌ Erro: ' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '💾 Salvar Companhia';
+        }
+    }
+
+    // ============= CARREGAR COMPANHIAS =============
+    async function carregarCompanhias() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('companhias')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            const container = document.getElementById('companhiasList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            container.innerHTML = data.map(comp => `
+                <div class="companhia-card rounded-xl p-6">
+                    <div class="flex flex-col items-center">
+                        <img src="${comp.logo_url}" alt="${comp.nome}" class="logo-preview mb-4" />
+                        <h3 class="text-xl font-bold text-white mb-2">${comp.nome}</h3>
+                        <p class="text-sm text-gray-400 mb-4">
+                            Cadastrado em ${new Date(comp.created_at).toLocaleDateString('pt-BR')}
+                        </p>
+                        <button onclick="deletarCompanhia('${comp.id}', '${comp.logo_url}')" 
+                                class="btn btn-sm btn-error">
+                            🗑️ Excluir
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+        } catch (error) {
+            showToast('❌ Erro ao carregar companhias: ' + error.message, 'error');
+        }
+    }
+
+    // ============= DELETAR COMPANHIA =============
+    async function deletarCompanhia(id, logoUrl) {
+        if (!confirm('Tem certeza que deseja excluir esta companhia?')) return;
+
+        try {
+            // 1. Extrair nome do arquivo da URL
+            const fileName = logoUrl.split('/').pop();
+
+            // 2. Deletar logo do Storage
+            const { error: storageError } = await supabaseClient
+                .storage
+                .from('companhias-logos')
+                .remove([fileName]);
+
+            if (storageError) console.error('Erro ao deletar logo:', storageError);
+
+            // 3. Deletar companhia do banco
+            const { error } = await supabaseClient
+                .from('companhias')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+
+            showToast('✅ Companhia excluída com sucesso!', 'success');
+            carregarCompanhias();
+
+        } catch (error) {
+            showToast('❌ Erro ao excluir: ' + error.message, 'error');
+        }
+    }
+
+    // ============= AUTH & INITIALIZATION =============
+    async function checkAuth() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (!session) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // Carregar companhias
+        carregarCompanhias();
+    }
+
+    async function handleLogout() {
+        await supabaseClient.auth.signOut();
+        window.location.href = 'login.html';
+    }
+
+    // Iniciar
+    checkAuth();
+    </script>
+</body>
+</html>
