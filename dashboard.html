@@ -4,573 +4,195 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Premium - Monitoramento de Milhas</title>
-
-    <!-- Tailwind CSS + DaisyUI -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.6.0/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/dist/apexcharts.min.js"></script>
-
-    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
     <style>
         * { font-family: 'Inter', sans-serif; }
-
-        body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-            min-height: 100vh;
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .card-gradient {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .stat-card {
-            transition: all 0.3s ease;
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
-            border-color: rgba(102, 126, 234, 0.5);
-        }
-
-        .chart-container {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            padding: 1.5rem;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.6); }
-        }
-
-        .pulse-glow {
-            animation: pulse-glow 2s ease-in-out infinite;
-        }
-
-        .hero-gradient {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .apexcharts-tooltip {
-            background: rgba(15, 23, 42, 0.95) !important;
-            border: 1px solid rgba(102, 126, 234, 0.5) !important;
-            color: #fff !important;
-        }
-
-        .table-container {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-        }
-
-        .modal-backdrop {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 9998;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-backdrop.active {
-            display: block;
-        }
-
-        .modal-content {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 1rem;
-            padding: 2rem;
-            max-width: 700px;
-            width: 95%;
-            max-height: 90vh;
-            overflow-y: auto;
-            z-index: 9999;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .modal-content::-webkit-scrollbar-track {
-            background: rgba(51, 65, 85, 0.5);
-            border-radius: 10px;
-        }
-
-        .modal-content::-webkit-scrollbar-thumb {
-            background: rgba(102, 126, 234, 0.5);
-            border-radius: 10px;
-        }
-
-        .passageiro-card {
-            background: rgba(51, 65, 85, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-        }
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); min-height: 100vh; }
+        .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .card-gradient { background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .stat-card { transition: all 0.3s ease; background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3); border-color: rgba(102, 126, 234, 0.5); }
+        .chart-container { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; padding: 1.5rem; }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); } 50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.6); } }
+        .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .hero-gradient { background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .apexcharts-tooltip { background: rgba(15, 23, 42, 0.95) !important; border: 1px solid rgba(102, 126, 234, 0.5) !important; color: #fff !important; }
+        .table-container { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
+        .modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 9998; backdrop-filter: blur(5px); }
+        .modal-backdrop.active { display: block; }
+        .modal-content { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 1rem; padding: 2rem; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; z-index: 9999; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); }
+        .modal-content::-webkit-scrollbar { width: 8px; }
+        .modal-content::-webkit-scrollbar-track { background: rgba(51, 65, 85, 0.5); border-radius: 10px; }
+        .modal-content::-webkit-scrollbar-thumb { background: rgba(102, 126, 234, 0.5); border-radius: 10px; }
+        .passageiro-card { background: rgba(51, 65, 85, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.5rem; }
     </style>
 </head>
 <body>
-
-    <!-- Hero Section -->
     <div class="hero-gradient py-8">
         <div class="container mx-auto px-4">
             <div class="flex justify-between items-center mb-4">
                 <div id="userEmail" class="text-gray-400 text-sm"></div>
                 <div class="flex gap-2">
-                    <a href="companhias.html" class="btn btn-sm btn-ghost text-gray-400 hover:text-white">
-                        ✈️ Companhias
-                    </a>
-                    <button onclick="handleLogout()" class="btn btn-sm btn-ghost text-gray-400 hover:text-white">
-                        🚪 Sair
-                    </button>
+                    <a href="companhias.html" class="btn btn-sm btn-ghost text-gray-400 hover:text-white">Companhias</a>
+                    <button onclick="handleLogout()" class="btn btn-sm btn-ghost text-gray-400 hover:text-white">Sair</button>
                 </div>
             </div>
             <h1 class="text-5xl font-bold gradient-text text-center mb-2">Dashboard Premium Milhas</h1>
             <p class="text-center text-gray-400 text-lg">Monitoramento em Tempo Real de Ofertas</p>
         </div>
     </div>
-
-    <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
-        
-        <!-- Filters Card -->
         <div class="card card-gradient shadow-xl mb-8 max-w-2xl mx-auto">
             <div class="card-body">
-                <h2 class="card-title text-2xl gradient-text">🔍 Filtros</h2>
+                <h2 class="card-title text-2xl gradient-text">Filtros</h2>
                 <div class="grid md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-gray-300">Data Início</span>
-                        </label>
-                        <input type="date" id="startDate" class="input input-bordered bg-slate-800 text-white" />
-                    </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-gray-300">Data Fim</span>
-                        </label>
-                        <input type="date" id="endDate" class="input input-bordered bg-slate-800 text-white" />
-                    </div>
+                    <div class="form-control"><label class="label"><span class="label-text text-gray-300">Data Inicio</span></label><input type="date" id="startDate" class="input input-bordered bg-slate-800 text-white" /></div>
+                    <div class="form-control"><label class="label"><span class="label-text text-gray-300">Data Fim</span></label><input type="date" id="endDate" class="input input-bordered bg-slate-800 text-white" /></div>
                 </div>
-                <div class="form-control">
-                    <label class="cursor-pointer label">
-                        <span class="label-text text-gray-300">Descartar registros vazios</span>
-                        <input type="checkbox" id="discardEmpty" checked class="checkbox checkbox-primary" />
-                    </label>
-                </div>
-                <button id="btnRefresh" class="btn btn-accent w-full mt-4">
-                    🔄 Atualizar Dados
-                </button>
+                <div class="form-control"><label class="cursor-pointer label"><span class="label-text text-gray-300">Descartar registros vazios</span><input type="checkbox" id="discardEmpty" checked class="checkbox checkbox-primary" /></label></div>
+                <button id="btnRefresh" class="btn btn-accent w-full mt-4">Atualizar Dados</button>
             </div>
         </div>
-
-        <!-- KPI Cards -->
         <div id="kpiContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" style="display:none;">
-            <div class="stat-card rounded-xl p-6">
-                <div class="text-gray-400 text-sm mb-2">Total de Ofertas</div>
-                <div id="kpiTotal" class="text-4xl font-bold gradient-text">0</div>
-            </div>
-            <div class="stat-card rounded-xl p-6">
-                <div class="text-gray-400 text-sm mb-2">Última Atualização</div>
-                <div id="kpiLastUpdate" class="text-lg font-semibold text-white">--</div>
-            </div>
-            <div class="stat-card rounded-xl p-6">
-                <div class="text-gray-400 text-sm mb-2">Ofertas (24h)</div>
-                <div id="kpi24h" class="text-4xl font-bold gradient-text">0</div>
-            </div>
-            <div class="stat-card rounded-xl p-6">
-                <div class="text-gray-400 text-sm mb-2">Pico/Hora</div>
-                <div id="kpiPeak" class="text-4xl font-bold gradient-text">0</div>
-            </div>
+            <div class="stat-card rounded-xl p-6"><div class="text-gray-400 text-sm mb-2">Total de Ofertas</div><div id="kpiTotal" class="text-4xl font-bold gradient-text">0</div></div>
+            <div class="stat-card rounded-xl p-6"><div class="text-gray-400 text-sm mb-2">Ultima Atualizacao</div><div id="kpiLastUpdate" class="text-lg font-semibold text-white">--</div></div>
+            <div class="stat-card rounded-xl p-6"><div class="text-gray-400 text-sm mb-2">Ofertas (24h)</div><div id="kpi24h" class="text-4xl font-bold gradient-text">0</div></div>
+            <div class="stat-card rounded-xl p-6"><div class="text-gray-400 text-sm mb-2">Pico/Hora</div><div id="kpiPeak" class="text-4xl font-bold gradient-text">0</div></div>
         </div>
-
-        <!-- Charts Grid -->
         <div id="chartsContainer" class="grid md:grid-cols-2 gap-6 mb-8" style="display:none;">
-            <!-- Hourly Chart -->
-            <div class="chart-container">
-                <h3 class="text-xl font-bold text-white mb-4">📊 Ofertas por Hora (24h)</h3>
-                <div id="chartHourly" style="height: 300px;"></div>
-            </div>
-
-            <!-- Daily Chart -->
-            <div class="chart-container">
-                <h3 class="text-xl font-bold text-white mb-4">📈 Ofertas por Dia (5 dias)</h3>
-                <div id="chartDaily" style="height: 300px;"></div>
-            </div>
-
-            <!-- Cabin Chart -->
-            <div class="chart-container">
-                <h3 class="text-xl font-bold text-white mb-4">✈️ Distribuição por Cabine</h3>
-                <div id="chartCabin" style="height: 300px;"></div>
-            </div>
-
-            <!-- Program Chart -->
-            <div class="chart-container">
-                <h3 class="text-xl font-bold text-white mb-4">🎫 Distribuição por Programa</h3>
-                <div id="chartProgram" style="height: 300px;"></div>
-            </div>
-
-            <!-- Top Origins -->
-            <div class="chart-container">
-                <h3 class="text-xl font-bold text-white mb-4">🌍 Top 5 Origens</h3>
-                <div id="chartOrigins" style="height: 300px;"></div>
-            </div>
-
-            <!-- Top Destinations -->
-            <div class="chart-container">
-                <h3 class="text-xl font-bold text-white mb-4">🎯 Top 5 Destinos</h3>
-                <div id="chartDestinations" style="height: 300px;"></div>
-            </div>
-
-            <!-- Airlines Chart - NOVO -->
-            <div class="chart-container md:col-span-2">
-                <h3 class="text-xl font-bold text-white mb-4">🛫 Ofertas por Companhia Aérea</h3>
-                <div id="chartAirlines" style="height: 300px;"></div>
-            </div>
+            <div class="chart-container"><h3 class="text-xl font-bold text-white mb-4">Ofertas por Hora (24h)</h3><div id="chartHourly" style="height: 300px;"></div></div>
+            <div class="chart-container"><h3 class="text-xl font-bold text-white mb-4">Ofertas por Dia (5 dias)</h3><div id="chartDaily" style="height: 300px;"></div></div>
+            <div class="chart-container"><h3 class="text-xl font-bold text-white mb-4">Distribuicao por Cabine</h3><div id="chartCabin" style="height: 300px;"></div></div>
+            <div class="chart-container"><h3 class="text-xl font-bold text-white mb-4">Distribuicao por Programa</h3><div id="chartProgram" style="height: 300px;"></div></div>
+            <div class="chart-container"><h3 class="text-xl font-bold text-white mb-4">Top 5 Origens</h3><div id="chartOrigins" style="height: 300px;"></div></div>
+            <div class="chart-container"><h3 class="text-xl font-bold text-white mb-4">Top 5 Destinos</h3><div id="chartDestinations" style="height: 300px;"></div></div>
+            <div class="chart-container md:col-span-2"><h3 class="text-xl font-bold text-white mb-4">Ofertas por Companhia Aerea</h3><div id="chartAirlines" style="height: 300px;"></div></div>
         </div>
-
-        <!-- Offers Table -->
         <div id="tableContainer" class="table-container p-6" style="display:none;">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-                <h3 class="text-2xl font-bold text-white">📋 Ofertas</h3>
-                
-                <!-- Filtros da Tabela -->
+                <h3 class="text-2xl font-bold text-white">Ofertas</h3>
                 <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                    <!-- Filtro Origem -->
-                    <input type="text" id="filterOrigem" placeholder="🔍 Origem" 
-                           class="input input-sm input-bordered bg-slate-800 text-white w-32" 
-                           oninput="App.filterTable()" />
-                    
-                    <!-- Filtro Destino -->
-                    <input type="text" id="filterDestino" placeholder="🔍 Destino" 
-                           class="input input-sm input-bordered bg-slate-800 text-white w-32" 
-                           oninput="App.filterTable()" />
-                    
-                    <!-- Quantidade -->
-                    <select id="tableLimit" class="select select-sm select-bordered bg-slate-800 text-white" 
-                            onchange="App.filterTable()">
-                        <option value="10">10 ofertas</option>
-                        <option value="20">20 ofertas</option>
-                        <option value="50">50 ofertas</option>
-                        <option value="100">100 ofertas</option>
-                        <option value="all">Todas</option>
+                    <input type="text" id="filterOrigem" placeholder="Origem" class="input input-sm input-bordered bg-slate-800 text-white w-32" oninput="App.filterTable()" />
+                    <input type="text" id="filterDestino" placeholder="Destino" class="input input-sm input-bordered bg-slate-800 text-white w-32" oninput="App.filterTable()" />
+                    <select id="tableLimit" class="select select-sm select-bordered bg-slate-800 text-white" onchange="App.filterTable()">
+                        <option value="10">10 ofertas</option><option value="20">20 ofertas</option><option value="50">50 ofertas</option><option value="100">100 ofertas</option><option value="all">Todas</option>
                     </select>
-                    
-                    <!-- Botão Limpar Filtros -->
-                    <button class="btn btn-sm btn-ghost text-gray-400" onclick="App.clearTableFilters()">
-                        ✖️ Limpar
-                    </button>
+                    <button class="btn btn-sm btn-ghost text-gray-400" onclick="App.clearTableFilters()">Limpar</button>
                 </div>
             </div>
-
-            <!-- Info de registros -->
-            <div class="text-gray-400 text-sm mb-2">
-                Mostrando <span id="tableCount" class="text-white font-bold">0</span> de 
-                <span id="tableTotal" class="text-white font-bold">0</span> ofertas
-            </div>
-
+            <div class="text-gray-400 text-sm mb-2">Mostrando <span id="tableCount" class="text-white font-bold">0</span> de <span id="tableTotal" class="text-white font-bold">0</span> ofertas</div>
             <div class="overflow-x-auto">
                 <table class="table table-zebra w-full">
-                    <thead>
-                        <tr class="text-gray-300">
-                            <th>Data</th>
-                            <th>Cia</th>
-                            <th>Origem</th>
-                            <th>Destino</th>
-                            <th>Voo</th>
-                            <th>Pontos</th>
-                            <th>Valor</th>
-                            <th>Cabine</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody" class="text-white">
-                    </tbody>
+                    <thead><tr class="text-gray-300"><th>Data</th><th>Cia</th><th>Origem</th><th>Destino</th><th>Voo</th><th>Pontos</th><th>Valor</th><th>Cabine</th><th>Acoes</th></tr></thead>
+                    <tbody id="tableBody" class="text-white"></tbody>
                 </table>
             </div>
         </div>
     </div>
-
-    <!-- Modal Orçamento -->
     <div id="modalOrcamento" class="modal-backdrop">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-3xl font-bold gradient-text">✈️ Gerar Orçamento</h2>
-                <button onclick="closeOrcamentoModal()" class="btn btn-sm btn-circle btn-ghost text-gray-400">✕</button>
+                <h2 class="text-3xl font-bold gradient-text">Gerar Orcamento</h2>
+                <button onclick="closeOrcamentoModal()" class="btn btn-sm btn-circle btn-ghost text-gray-400">X</button>
             </div>
-
-            <!-- Dados da Oferta (Read-only) -->
             <div class="mb-6">
-                <h3 class="text-lg font-bold text-white mb-3">📋 Dados da Viagem</h3>
+                <h3 class="text-lg font-bold text-white mb-3">Dados da Viagem</h3>
                 <div class="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                        <span class="text-gray-400">Companhia:</span>
-                        <span id="modalCompanhia" class="text-white font-semibold ml-2">--</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-400">Voo:</span>
-                        <span id="modalVoo" class="text-white font-semibold ml-2">--</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-400">Origem:</span>
-                        <span id="modalOrigem" class="text-white font-semibold ml-2">--</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-400">Destino:</span>
-                        <span id="modalDestino" class="text-white font-semibold ml-2">--</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-400">Data:</span>
-                        <span id="modalDataIda" class="text-white font-semibold ml-2">--</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-400">Valor:</span>
-                        <span id="modalValor" class="text-green-400 font-semibold ml-2">--</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-400">Cabine:</span>
-                        <span id="modalCabine" class="text-white font-semibold ml-2">--</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-400">Programa:</span>
-                        <span id="modalPrograma" class="text-white font-semibold ml-2">--</span>
-                    </div>
+                    <div><span class="text-gray-400">Companhia:</span><span id="modalCompanhia" class="text-white font-semibold ml-2">--</span></div>
+                    <div><span class="text-gray-400">Voo:</span><span id="modalVoo" class="text-white font-semibold ml-2">--</span></div>
+                    <div><span class="text-gray-400">Origem:</span><span id="modalOrigem" class="text-white font-semibold ml-2">--</span></div>
+                    <div><span class="text-gray-400">Destino:</span><span id="modalDestino" class="text-white font-semibold ml-2">--</span></div>
+                    <div><span class="text-gray-400">Data:</span><span id="modalDataIda" class="text-white font-semibold ml-2">--</span></div>
+                    <div><span class="text-gray-400">Valor:</span><span id="modalValor" class="text-green-400 font-semibold ml-2">--</span></div>
+                    <div><span class="text-gray-400">Cabine:</span><span id="modalCabine" class="text-white font-semibold ml-2">--</span></div>
+                    <div><span class="text-gray-400">Programa:</span><span id="modalPrograma" class="text-white font-semibold ml-2">--</span></div>
                 </div>
             </div>
-
             <div class="divider"></div>
-
-            <!-- Formulário -->
             <form id="formOrcamento" onsubmit="gerarPDF(event)">
-                
-                <!-- Dados do Voo -->
-                <h3 class="text-lg font-bold text-white mb-3">🕐 Horários do Voo</h3>
+                <h3 class="text-lg font-bold text-white mb-3">Horarios do Voo</h3>
                 <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-gray-300">Horário Saída *</span>
-                        </label>
-                        <input type="time" id="horarioSaida" required 
-                               class="input input-bordered bg-slate-800 text-white" />
-                    </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-gray-300">Horário Chegada *</span>
-                        </label>
-                        <input type="time" id="horarioChegada" required 
-                               class="input input-bordered bg-slate-800 text-white" />
-                    </div>
+                    <div class="form-control"><label class="label"><span class="label-text text-gray-300">Horario Saida *</span></label><input type="time" id="horarioSaida" required class="input input-bordered bg-slate-800 text-white" /></div>
+                    <div class="form-control"><label class="label"><span class="label-text text-gray-300">Horario Chegada *</span></label><input type="time" id="horarioChegada" required class="input input-bordered bg-slate-800 text-white" /></div>
                 </div>
-
-                <div class="form-control mb-4">
-                    <label class="label">
-                        <span class="label-text text-gray-300">Localizador</span>
-                    </label>
-                    <input type="text" id="localizador" 
-                           class="input input-bordered bg-slate-800 text-white w-40" 
-                           placeholder="Ex: GBHTNG"
-                           oninput="this.value = this.value.toUpperCase()" />
-                </div>
-
+                <div class="form-control mb-4"><label class="label"><span class="label-text text-gray-300">Localizador</span></label><input type="text" id="localizador" class="input input-bordered bg-slate-800 text-white w-40" placeholder="Ex: GBHTNG" oninput="this.value = this.value.toUpperCase()" /></div>
                 <div class="divider"></div>
-
-                <!-- Dados do Cliente -->
-                <h3 class="text-lg font-bold text-white mb-3">👤 Dados do Cliente</h3>
-                
-                <div class="form-control mb-3">
-                    <label class="label">
-                        <span class="label-text text-gray-300">Nome Completo *</span>
-                    </label>
-                    <input type="text" id="clienteNome" required 
-                           class="input input-bordered bg-slate-800 text-white" 
-                           placeholder="João Silva" />
-                </div>
-
+                <h3 class="text-lg font-bold text-white mb-3">Dados do Cliente</h3>
+                <div class="form-control mb-3"><label class="label"><span class="label-text text-gray-300">Nome Completo *</span></label><input type="text" id="clienteNome" required class="input input-bordered bg-slate-800 text-white" placeholder="Joao Silva" /></div>
                 <div class="grid grid-cols-2 gap-3 mb-3">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-gray-300">Telefone *</span>
-                        </label>
-                        <input type="tel" id="clienteTelefone" required 
-                               class="input input-bordered bg-slate-800 text-white" 
-                               placeholder="(11) 99999-9999" />
-                    </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-gray-300">Email *</span>
-                        </label>
-                        <input type="email" id="clienteEmail" required 
-                               class="input input-bordered bg-slate-800 text-white" 
-                               placeholder="email@exemplo.com" />
-                    </div>
+                    <div class="form-control"><label class="label"><span class="label-text text-gray-300">Telefone *</span></label><input type="tel" id="clienteTelefone" required class="input input-bordered bg-slate-800 text-white" placeholder="(11) 99999-9999" /></div>
+                    <div class="form-control"><label class="label"><span class="label-text text-gray-300">Email *</span></label><input type="email" id="clienteEmail" required class="input input-bordered bg-slate-800 text-white" placeholder="email@exemplo.com" /></div>
                 </div>
-
-                <div class="form-control mb-4">
-                    <label class="label">
-                        <span class="label-text text-gray-300">Endereço</span>
-                    </label>
-                    <input type="text" id="clienteEndereco" 
-                           class="input input-bordered bg-slate-800 text-white" 
-                           placeholder="Rua, número, cidade - UF" />
-                </div>
-
+                <div class="form-control mb-4"><label class="label"><span class="label-text text-gray-300">Endereco</span></label><input type="text" id="clienteEndereco" class="input input-bordered bg-slate-800 text-white" placeholder="Rua, numero, cidade - UF" /></div>
                 <div class="divider"></div>
-
-                <!-- Passageiros -->
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-lg font-bold text-white">👥 Passageiros</h3>
-                    <button type="button" onclick="addPassageiro()" class="btn btn-sm btn-primary">
-                        + Adicionar
-                    </button>
-                </div>
-
-                <div id="passageirosContainer">
-                    <!-- Passageiros serão adicionados aqui -->
-                </div>
-
+                <div class="flex justify-between items-center mb-3"><h3 class="text-lg font-bold text-white">Passageiros</h3><button type="button" onclick="addPassageiro()" class="btn btn-sm btn-primary">+ Adicionar</button></div>
+                <div id="passageirosContainer"></div>
                 <div class="divider"></div>
-
-                <!-- Opções -->
-                <h3 class="text-lg font-bold text-white mb-3">⚙️ Opções da Viagem</h3>
-
+                <h3 class="text-lg font-bold text-white mb-3">Opcoes da Viagem</h3>
                 <div class="flex flex-col gap-2 mb-6">
-                    <label class="cursor-pointer label justify-start gap-3">
-                        <input type="checkbox" id="bagagemDespachada" class="checkbox checkbox-primary" />
-                        <span class="label-text text-gray-300">Bagagem Despachada</span>
-                    </label>
-                    <label class="cursor-pointer label justify-start gap-3">
-                        <input type="checkbox" id="temConexao" class="checkbox checkbox-primary" />
-                        <span class="label-text text-gray-300">Tem Conexão</span>
-                    </label>
+                    <label class="cursor-pointer label justify-start gap-3"><input type="checkbox" id="bagagemDespachada" class="checkbox checkbox-primary" /><span class="label-text text-gray-300">Bagagem Despachada</span></label>
+                    <label class="cursor-pointer label justify-start gap-3"><input type="checkbox" id="temConexao" class="checkbox checkbox-primary" /><span class="label-text text-gray-300">Tem Conexao</span></label>
                 </div>
-
-                <button type="submit" class="btn btn-primary w-full pulse-glow">
-                    📄 Gerar Orçamento PDF
-                </button>
+                <button type="submit" class="btn btn-primary w-full pulse-glow">Gerar Orcamento PDF</button>
             </form>
         </div>
     </div>
-
     <script>
-    // Configuração do Supabase
     const SUPABASE_URL = 'https://eeyobwuzbloopynmflva.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVleW9id3V6Ymxvb3B5bm1mbHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Mzk5NjQsImV4cCI6MjA4NDIxNTk2NH0.LLNFPYGDSVflT2_YWlYeQ4LWxYnyyFy322Ny3TS6D1E';
-
     const { createClient } = supabase;
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // Cache de companhias
     let companhiasCache = [];
 
-    // ============= UTILITIES =============
     const Utils = {
         showToast(msg, type='info') {
-            const colors = {
-                success: 'bg-green-500',
-                error: 'bg-red-500',
-                info: 'bg-blue-500',
-                warning: 'bg-yellow-500'
-            };
+            const colors = { success: 'bg-green-500', error: 'bg-red-500', info: 'bg-blue-500', warning: 'bg-yellow-500' };
             const toast = document.createElement('div');
             toast.className = `alert ${colors[type]} text-white fixed top-4 right-4 max-w-sm z-50 shadow-2xl`;
             toast.innerHTML = `<span>${msg}</span>`;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         },
-
         formatDate(d) {
             if (!d) return '--';
             const dt = new Date(d);
-            return dt.toLocaleString('pt-BR', {
-                day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit'
-            });
+            return dt.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         },
-
         formatDateShort(d) {
             if (!d) return '--';
-            const dt = new Date(d);
-            return dt.toLocaleDateString('pt-BR', {
-                day: '2-digit', month: '2-digit'
-            });
+            return new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         },
-
         formatDateFull(d) {
             if (!d) return '--';
-            const dt = new Date(d);
-            const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+            const dt = new Date(d + 'T00:00:00');
+            const dias = ['Domingo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado'];
             return `${dias[dt.getDay()]}, ${dt.toLocaleDateString('pt-BR')}`;
         },
-
         formatCurrency(value) {
             if (!value || value === 0) return '--';
-            return new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            }).format(value);
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
         }
     };
 
-    // ============= CARREGAR COMPANHIAS =============
     async function carregarCompanhias() {
-        const { data, error } = await supabaseClient
-            .from('companhias')
-            .select('*');
-        
-        if (!error && data) {
-            companhiasCache = data;
-        }
+        const { data, error } = await supabaseClient.from('companhias').select('*');
+        if (!error && data) companhiasCache = data;
     }
 
     function getCompanhiaByIata(iata) {
         if (!iata) return null;
-        return companhiasCache.find(c => 
-            c.codigo_cia_iata && c.codigo_cia_iata.toUpperCase() === iata.toUpperCase()
-        );
+        return companhiasCache.find(c => c.codigo_cia_iata && c.codigo_cia_iata.toUpperCase() === iata.toUpperCase());
     }
 
-    // ============= DATA MANAGER =============
     const DataManager = {
         tableName: 'Rotas Encontradas',
-
         async fetchData(filters = {}) {
             let query = supabaseClient.from(this.tableName).select('*');
             if (filters.startDate) query = query.gte('created_at', filters.startDate + 'T00:00:00');
@@ -579,224 +201,85 @@
             if (error) throw error;
             return data || [];
         },
-
         subscribeToChanges(callback) {
-            return supabaseClient
-                .channel('table-changes')
-                .on('postgres_changes',
-                    { event: '*', schema: 'public', table: this.tableName },
-                    callback)
-                .subscribe();
+            return supabaseClient.channel('table-changes').on('postgres_changes', { event: '*', schema: 'public', table: this.tableName }, callback).subscribe();
         }
     };
 
-    // ============= CHART MANAGER =============
     const ChartManager = {
         charts: {},
-
-        destroy(id) {
-            if (this.charts[id]) {
-                this.charts[id].destroy();
-                delete this.charts[id];
-            }
-        },
-
+        destroy(id) { if (this.charts[id]) { this.charts[id].destroy(); delete this.charts[id]; } },
         createLineChart(id, data) {
             this.destroy(id);
             const options = {
-                series: [{
-                    name: 'Ofertas',
-                    data: data.values
-                }],
-                chart: {
-                    type: 'area',
-                    height: 300,
-                    background: 'transparent',
-                    toolbar: { show: false },
-                    animations: { enabled: true, speed: 800 }
-                },
+                series: [{ name: 'Ofertas', data: data.values }],
+                chart: { type: 'area', height: 300, background: 'transparent', toolbar: { show: false }, animations: { enabled: true, speed: 800 } },
                 dataLabels: { enabled: false },
                 stroke: { curve: 'smooth', width: 3, colors: ['#667eea'] },
-                fill: {
-                    type: 'gradient',
-                    gradient: {
-                        shadeIntensity: 1,
-                        opacityFrom: 0.7,
-                        opacityTo: 0.2,
-                        stops: [0, 90, 100]
-                    }
-                },
-                xaxis: {
-                    categories: data.labels,
-                    labels: { style: { colors: '#94a3b8' } }
-                },
-                yaxis: {
-                    labels: { style: { colors: '#94a3b8' } }
-                },
-                grid: {
-                    borderColor: '#334155',
-                    strokeDashArray: 5
-                },
-                tooltip: {
-                    theme: 'dark',
-                    x: { show: true }
-                }
+                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.2, stops: [0, 90, 100] } },
+                xaxis: { categories: data.labels, labels: { style: { colors: '#94a3b8' } } },
+                yaxis: { labels: { style: { colors: '#94a3b8' } } },
+                grid: { borderColor: '#334155', strokeDashArray: 5 },
+                tooltip: { theme: 'dark', x: { show: true } }
             };
             this.charts[id] = new ApexCharts(document.getElementById(id), options);
             this.charts[id].render();
         },
-
         createBarChart(id, data) {
             this.destroy(id);
             const options = {
-                series: [{
-                    name: 'Ofertas',
-                    data: data.values
-                }],
-                chart: {
-                    type: 'bar',
-                    height: 300,
-                    background: 'transparent',
-                    toolbar: { show: false },
-                    animations: { enabled: true, speed: 800 }
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: false,
-                        columnWidth: '60%',
-                        borderRadius: 8,
-                        dataLabels: { position: 'top' }
-                    }
-                },
-                dataLabels: {
-                    enabled: true,
-                    offsetY: -20,
-                    style: { colors: ['#fff'] }
-                },
+                series: [{ name: 'Ofertas', data: data.values }],
+                chart: { type: 'bar', height: 300, background: 'transparent', toolbar: { show: false }, animations: { enabled: true, speed: 800 } },
+                plotOptions: { bar: { horizontal: false, columnWidth: '60%', borderRadius: 8, dataLabels: { position: 'top' } } },
+                dataLabels: { enabled: true, offsetY: -20, style: { colors: ['#fff'] } },
                 colors: ['#764ba2'],
-                xaxis: {
-                    categories: data.labels,
-                    labels: { style: { colors: '#94a3b8' } }
-                },
-                yaxis: {
-                    labels: { style: { colors: '#94a3b8' } }
-                },
-                grid: {
-                    borderColor: '#334155',
-                    strokeDashArray: 5
-                },
-                tooltip: {
-                    theme: 'dark'
-                }
+                xaxis: { categories: data.labels, labels: { style: { colors: '#94a3b8' } } },
+                yaxis: { labels: { style: { colors: '#94a3b8' } } },
+                grid: { borderColor: '#334155', strokeDashArray: 5 },
+                tooltip: { theme: 'dark' }
             };
             this.charts[id] = new ApexCharts(document.getElementById(id), options);
             this.charts[id].render();
         },
-
         createDonutChart(id, data) {
             this.destroy(id);
             const options = {
                 series: data.values,
-                chart: {
-                    type: 'donut',
-                    height: 300,
-                    background: 'transparent',
-                    animations: { enabled: true, speed: 800 }
-                },
+                chart: { type: 'donut', height: 300, background: 'transparent', animations: { enabled: true, speed: 800 } },
                 labels: data.labels,
                 colors: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b', '#fa709a'],
-                dataLabels: {
-                    enabled: true,
-                    style: { colors: ['#fff'] }
-                },
-                legend: {
-                    position: 'bottom',
-                    labels: { colors: '#94a3b8' }
-                },
-                plotOptions: {
-                    pie: {
-                        donut: {
-                            size: '65%',
-                            labels: {
-                                show: true,
-                                name: { color: '#94a3b8' },
-                                value: { color: '#fff', fontSize: '22px' },
-                                total: {
-                                    show: true,
-                                    color: '#94a3b8',
-                                    label: 'Total'
-                                }
-                            }
-                        }
-                    }
-                },
-                tooltip: {
-                    theme: 'dark'
-                }
+                dataLabels: { enabled: true, style: { colors: ['#fff'] } },
+                legend: { position: 'bottom', labels: { colors: '#94a3b8' } },
+                plotOptions: { pie: { donut: { size: '65%', labels: { show: true, name: { color: '#94a3b8' }, value: { color: '#fff', fontSize: '22px' }, total: { show: true, color: '#94a3b8', label: 'Total' } } } } },
+                tooltip: { theme: 'dark' }
             };
             this.charts[id] = new ApexCharts(document.getElementById(id), options);
             this.charts[id].render();
         },
-
         createHorizontalBarChart(id, data) {
             this.destroy(id);
             const options = {
-                series: [{
-                    name: 'Ofertas',
-                    data: data.values
-                }],
-                chart: {
-                    type: 'bar',
-                    height: 300,
-                    background: 'transparent',
-                    toolbar: { show: false },
-                    animations: { enabled: true, speed: 800 }
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: true,
-                        columnWidth: '60%',
-                        borderRadius: 8,
-                        dataLabels: { position: 'right' }
-                    }
-                },
-                dataLabels: {
-                    enabled: true,
-                    style: { colors: ['#fff'] }
-                },
+                series: [{ name: 'Ofertas', data: data.values }],
+                chart: { type: 'bar', height: 300, background: 'transparent', toolbar: { show: false }, animations: { enabled: true, speed: 800 } },
+                plotOptions: { bar: { horizontal: true, columnWidth: '60%', borderRadius: 8, dataLabels: { position: 'right' } } },
+                dataLabels: { enabled: true, style: { colors: ['#fff'] } },
                 colors: ['#667eea'],
-                xaxis: {
-                    categories: data.labels,
-                    labels: { style: { colors: '#94a3b8' } }
-                },
-                yaxis: {
-                    labels: { style: { colors: '#94a3b8' } }
-                },
-                grid: {
-                    borderColor: '#334155',
-                    strokeDashArray: 5
-                },
-                tooltip: {
-                    theme: 'dark'
-                }
+                xaxis: { categories: data.labels, labels: { style: { colors: '#94a3b8' } } },
+                yaxis: { labels: { style: { colors: '#94a3b8' } } },
+                grid: { borderColor: '#334155', strokeDashArray: 5 },
+                tooltip: { theme: 'dark' }
             };
             this.charts[id] = new ApexCharts(document.getElementById(id), options);
             this.charts[id].render();
         }
     };
 
-    // ============= MAIN APP =============
     const App = {
         data: [],
         filteredData: [],
         pollInterval: null,
         subscription: null,
-
-        init() {
-            this.bindEvents();
-            this.setDefaultDates();
-        },
-
+        init() { this.bindEvents(); this.setDefaultDates(); },
         setDefaultDates() {
             const end = new Date();
             const start = new Date();
@@ -804,243 +287,100 @@
             document.getElementById('startDate').value = start.toISOString().split('T')[0];
             document.getElementById('endDate').value = end.toISOString().split('T')[0];
         },
-
-        bindEvents() {
-            document.getElementById('btnRefresh').addEventListener('click', () => this.refresh());
-        },
-
+        bindEvents() { document.getElementById('btnRefresh').addEventListener('click', () => this.refresh()); },
         async refresh() {
-            const filters = {
-                startDate: document.getElementById('startDate').value,
-                endDate: document.getElementById('endDate').value
-            };
-
+            const filters = { startDate: document.getElementById('startDate').value, endDate: document.getElementById('endDate').value };
             try {
                 let data = await DataManager.fetchData(filters);
-
                 if (document.getElementById('discardEmpty').checked) {
-                    data = data.filter(r => {
-                        return r.origem && r.destino && r.origem.trim() && r.destino.trim();
-                    });
+                    data = data.filter(r => r.origem && r.destino && r.origem.trim() && r.destino.trim());
                 }
-
                 this.data = data;
                 this.render();
-                Utils.showToast('✅ Dados atualizados!', 'success');
+                Utils.showToast('Dados atualizados!', 'success');
             } catch (e) {
-                Utils.showToast('❌ Erro ao buscar dados: ' + e.message, 'error');
+                Utils.showToast('Erro ao buscar dados: ' + e.message, 'error');
             }
         },
-
-        startPolling() {
-            if (this.pollInterval) clearInterval(this.pollInterval);
-            this.pollInterval = setInterval(() => this.refresh(), 60000);
-        },
-
-        subscribeRealtime() {
-            if (this.subscription) this.subscription.unsubscribe();
-            this.subscription = DataManager.subscribeToChanges(() => this.refresh());
-        },
-
         render() {
             this.renderKPIs();
             this.renderCharts();
             this.renderTable();
-
             document.getElementById('kpiContainer').style.display = 'grid';
             document.getElementById('chartsContainer').style.display = 'grid';
             document.getElementById('tableContainer').style.display = 'block';
         },
-
         renderKPIs() {
             const total = this.data.length;
-            const last24h = this.data.filter(r => {
-                const created = new Date(r.created_at);
-                const now = new Date();
-                return (now - created) < 24 * 60 * 60 * 1000;
-            }).length;
-
+            const last24h = this.data.filter(r => { const created = new Date(r.created_at); const now = new Date(); return (now - created) < 24 * 60 * 60 * 1000; }).length;
             const hourCounts = {};
-            this.data.forEach(r => {
-                const h = new Date(r.created_at).getHours();
-                hourCounts[h] = (hourCounts[h] || 0) + 1;
-            });
+            this.data.forEach(r => { const h = new Date(r.created_at).getHours(); hourCounts[h] = (hourCounts[h] || 0) + 1; });
             const peak = Math.max(...Object.values(hourCounts), 0);
-
-            const lastUpdate = this.data.length > 0 ?
-                Utils.formatDate(this.data[0].created_at) : '--';
-
+            const lastUpdate = this.data.length > 0 ? Utils.formatDate(this.data[0].created_at) : '--';
             document.getElementById('kpiTotal').textContent = total;
             document.getElementById('kpi24h').textContent = last24h;
             document.getElementById('kpiPeak').textContent = peak;
             document.getElementById('kpiLastUpdate').textContent = lastUpdate;
         },
-
         renderCharts() {
-            // Hourly
-            const hourCounts = {};
-            for (let h = 0; h < 24; h++) hourCounts[h] = 0;
-            this.data.filter(r => {
-                const created = new Date(r.created_at);
-                const now = new Date();
-                return (now - created) < 24 * 60 * 60 * 1000;
-            }).forEach(r => {
-                const h = new Date(r.created_at).getHours();
-                hourCounts[h]++;
-            });
-            ChartManager.createLineChart('chartHourly', {
-                labels: Object.keys(hourCounts).map(h => `${h}h`),
-                values: Object.values(hourCounts)
-            });
-
-            // Daily
+            const hourCounts = {}; for (let h = 0; h < 24; h++) hourCounts[h] = 0;
+            this.data.filter(r => { const created = new Date(r.created_at); const now = new Date(); return (now - created) < 24 * 60 * 60 * 1000; }).forEach(r => { const h = new Date(r.created_at).getHours(); hourCounts[h]++; });
+            ChartManager.createLineChart('chartHourly', { labels: Object.keys(hourCounts).map(h => `${h}h`), values: Object.values(hourCounts) });
             const dayCounts = {};
-            this.data.forEach(r => {
-                const day = new Date(r.created_at).toISOString().split('T')[0];
-                dayCounts[day] = (dayCounts[day] || 0) + 1;
-            });
+            this.data.forEach(r => { const day = new Date(r.created_at).toISOString().split('T')[0]; dayCounts[day] = (dayCounts[day] || 0) + 1; });
             const sortedDays = Object.keys(dayCounts).sort().slice(-5);
-            ChartManager.createBarChart('chartDaily', {
-                labels: sortedDays,
-                values: sortedDays.map(d => dayCounts[d])
-            });
-
-            // Cabin
+            ChartManager.createBarChart('chartDaily', { labels: sortedDays, values: sortedDays.map(d => dayCounts[d]) });
             const cabinCounts = {};
-            this.data.forEach(r => {
-                const cabin = r.tipo_cabine || 'Desconhecido';
-                cabinCounts[cabin] = (cabinCounts[cabin] || 0) + 1;
-            });
-            ChartManager.createDonutChart('chartCabin', {
-                labels: Object.keys(cabinCounts),
-                values: Object.values(cabinCounts)
-            });
-
-            // Program
+            this.data.forEach(r => { const cabin = r.tipo_cabine || 'Desconhecido'; cabinCounts[cabin] = (cabinCounts[cabin] || 0) + 1; });
+            ChartManager.createDonutChart('chartCabin', { labels: Object.keys(cabinCounts), values: Object.values(cabinCounts) });
             const programCounts = {};
-            this.data.forEach(r => {
-                const prog = r.programa_emissao || 'Desconhecido';
-                programCounts[prog] = (programCounts[prog] || 0) + 1;
-            });
-            ChartManager.createDonutChart('chartProgram', {
-                labels: Object.keys(programCounts),
-                values: Object.values(programCounts)
-            });
-
-            // Top Origins
+            this.data.forEach(r => { const prog = r.programa_emissao || 'Desconhecido'; programCounts[prog] = (programCounts[prog] || 0) + 1; });
+            ChartManager.createDonutChart('chartProgram', { labels: Object.keys(programCounts), values: Object.values(programCounts) });
             const originCounts = {};
-            this.data.forEach(r => {
-                const orig = r.origem || 'Desconhecido';
-                originCounts[orig] = (originCounts[orig] || 0) + 1;
-            });
+            this.data.forEach(r => { const orig = r.origem || 'Desconhecido'; originCounts[orig] = (originCounts[orig] || 0) + 1; });
             const topOrigins = Object.entries(originCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-            ChartManager.createBarChart('chartOrigins', {
-                labels: topOrigins.map(x => x[0]),
-                values: topOrigins.map(x => x[1])
-            });
-
-            // Top Destinations
+            ChartManager.createBarChart('chartOrigins', { labels: topOrigins.map(x => x[0]), values: topOrigins.map(x => x[1]) });
             const destCounts = {};
-            this.data.forEach(r => {
-                const dest = r.destino || 'Desconhecido';
-                destCounts[dest] = (destCounts[dest] || 0) + 1;
-            });
+            this.data.forEach(r => { const dest = r.destino || 'Desconhecido'; destCounts[dest] = (destCounts[dest] || 0) + 1; });
             const topDests = Object.entries(destCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-            ChartManager.createBarChart('chartDestinations', {
-                labels: topDests.map(x => x[0]),
-                values: topDests.map(x => x[1])
-            });
-
-             // Airlines - NOVO GRÁFICO (ignora vazios)
+            ChartManager.createBarChart('chartDestinations', { labels: topDests.map(x => x[0]), values: topDests.map(x => x[1]) });
             const airlineCounts = {};
-            this.data.forEach(r => {
-                const iata = r.codigo_cia_iata;
-                if (!iata || iata.trim() === '') return; // Ignora vazios
-                const companhia = getCompanhiaByIata(iata);
-                const nome = companhia ? companhia.nome : iata;
-                airlineCounts[nome] = (airlineCounts[nome] || 0) + 1;
-            });
+            this.data.forEach(r => { const iata = r.codigo_cia_iata; if (!iata || iata.trim() === '') return; const companhia = getCompanhiaByIata(iata); const nome = companhia ? companhia.nome : iata; airlineCounts[nome] = (airlineCounts[nome] || 0) + 1; });
             const topAirlines = Object.entries(airlineCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
-            ChartManager.createHorizontalBarChart('chartAirlines', {
-                labels: topAirlines.map(x => x[0]),
-                values: topAirlines.map(x => x[1])
-            });
+            ChartManager.createHorizontalBarChart('chartAirlines', { labels: topAirlines.map(x => x[0]), values: topAirlines.map(x => x[1]) });
         },
-
-        renderTable() {
-            this.filteredData = this.data;
-            this.filterTable();
-        },
-
+        renderTable() { this.filteredData = this.data; this.filterTable(); },
         filterTable() {
             const origem = document.getElementById('filterOrigem').value.toLowerCase().trim();
             const destino = document.getElementById('filterDestino').value.toLowerCase().trim();
             const limit = document.getElementById('tableLimit').value;
-
             let filtered = this.data.filter(r => {
                 const origemMatch = !origem || (r.origem && r.origem.toLowerCase().includes(origem));
                 const destinoMatch = !destino || (r.destino && r.destino.toLowerCase().includes(destino));
                 return origemMatch && destinoMatch;
             });
-
             const displayData = limit === 'all' ? filtered : filtered.slice(0, parseInt(limit));
-
             document.getElementById('tableCount').textContent = displayData.length;
             document.getElementById('tableTotal').textContent = this.data.length;
-
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-
-            if (displayData.length === 0) {
-                const row = tbody.insertRow();
-                row.innerHTML = `<td colspan="9" class="text-center text-gray-400 py-8">Nenhuma oferta encontrada</td>`;
-                return;
-            }
-
+            if (displayData.length === 0) { const row = tbody.insertRow(); row.innerHTML = `<td colspan="9" class="text-center text-gray-400 py-8">Nenhuma oferta encontrada</td>`; return; }
             displayData.forEach(r => {
                 const row = tbody.insertRow();
                 const offerData = JSON.stringify(r).replace(/"/g, '&quot;');
                 const companhia = getCompanhiaByIata(r.codigo_cia_iata);
                 const ciaDisplay = companhia ? companhia.nome : (r.codigo_cia_iata || '--');
-                
-                row.innerHTML = `
-                    <td>${Utils.formatDateShort(r.created_at)}</td>
-                    <td><span class="badge badge-sm badge-primary">${ciaDisplay}</span></td>
-                    <td>${r.origem || '--'}</td>
-                    <td>${r.destino || '--'}</td>
-                    <td>${r.voo || '--'}</td>
-                    <td>${r.pontos || '--'}</td>
-                    <td class="font-semibold text-green-400">${Utils.formatCurrency(r.valor)}</td>
-                    <td>${r.tipo_cabine || '--'}</td>
-                    <td>
-                        <div class="flex gap-1">
-                            ${r.link_acesso ? 
-                                `<a href="${r.link_acesso}" target="_blank" class="btn btn-xs btn-primary">🔗</a>` : 
-                                ''}
-                            <button onclick='openOrcamentoModal(${offerData})' class="btn btn-xs btn-accent">💼</button>
-                        </div>
-                    </td>
-                `;
+                row.innerHTML = `<td>${Utils.formatDateShort(r.created_at)}</td><td><span class="badge badge-sm badge-primary">${ciaDisplay}</span></td><td>${r.origem || '--'}</td><td>${r.destino || '--'}</td><td>${r.voo || '--'}</td><td>${r.pontos || '--'}</td><td class="font-semibold text-green-400">${Utils.formatCurrency(r.valor)}</td><td>${r.tipo_cabine || '--'}</td><td><div class="flex gap-1">${r.link_acesso ? `<a href="${r.link_acesso}" target="_blank" class="btn btn-xs btn-primary">Link</a>` : ''}<button onclick='openOrcamentoModal(${offerData})' class="btn btn-xs btn-accent">Orcamento</button></div></td>`;
             });
         },
-
-        clearTableFilters() {
-            document.getElementById('filterOrigem').value = '';
-            document.getElementById('filterDestino').value = '';
-            document.getElementById('tableLimit').value = '10';
-            this.filterTable();
-        }
+        clearTableFilters() { document.getElementById('filterOrigem').value = ''; document.getElementById('filterDestino').value = ''; document.getElementById('tableLimit').value = '10'; this.filterTable(); }
     };
-
-    // ============= MODAL E PDF =============
-    let currentOffer = null;
+  let currentOffer = null;
     let passageiroCount = 0;
 
     function openOrcamentoModal(offer) {
         currentOffer = offer;
-        
         const companhia = getCompanhiaByIata(offer.codigo_cia_iata);
-        
         document.getElementById('modalCompanhia').textContent = companhia ? companhia.nome : (offer.codigo_cia_iata || '--');
         document.getElementById('modalVoo').textContent = offer.voo || '--';
         document.getElementById('modalOrigem').textContent = offer.origem || '--';
@@ -1049,12 +389,10 @@
         document.getElementById('modalValor').textContent = Utils.formatCurrency(offer.valor);
         document.getElementById('modalCabine').textContent = offer.tipo_cabine || '--';
         document.getElementById('modalPrograma').textContent = offer.programa_emissao || '--';
-        
         document.getElementById('formOrcamento').reset();
         document.getElementById('passageirosContainer').innerHTML = '';
         passageiroCount = 0;
         addPassageiro();
-        
         document.getElementById('modalOrcamento').classList.add('active');
     }
 
@@ -1069,45 +407,26 @@
         const div = document.createElement('div');
         div.className = 'passageiro-card';
         div.id = `passageiro-${passageiroCount}`;
-        div.innerHTML = `
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-white font-semibold">Passageiro ${passageiroCount}</span>
-                ${passageiroCount > 1 ? `<button type="button" onclick="removePassageiro(${passageiroCount})" class="btn btn-xs btn-error">✕</button>` : ''}
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <input type="text" placeholder="Nome completo *" required
-                       class="input input-sm input-bordered bg-slate-700 text-white passageiro-nome" />
-                <input type="text" placeholder="Documento (CPF/RG)"
-                       class="input input-sm input-bordered bg-slate-700 text-white passageiro-doc" />
-            </div>
-        `;
+        div.innerHTML = `<div class="flex justify-between items-center mb-2"><span class="text-white font-semibold">Passageiro ${passageiroCount}</span>${passageiroCount > 1 ? `<button type="button" onclick="removePassageiro(${passageiroCount})" class="btn btn-xs btn-error">X</button>` : ''}</div><div class="grid grid-cols-2 gap-2"><input type="text" placeholder="Nome completo *" required class="input input-sm input-bordered bg-slate-700 text-white passageiro-nome" /><input type="text" placeholder="Documento (CPF/RG)" class="input input-sm input-bordered bg-slate-700 text-white passageiro-doc" /></div>`;
         container.appendChild(div);
     }
 
-    function removePassageiro(id) {
-        document.getElementById(`passageiro-${id}`).remove();
-    }
+    function removePassageiro(id) { document.getElementById(`passageiro-${id}`).remove(); }
 
     function getPassageiros() {
         const passageiros = [];
         document.querySelectorAll('.passageiro-card').forEach(card => {
             const nome = card.querySelector('.passageiro-nome').value.trim();
             const doc = card.querySelector('.passageiro-doc').value.trim();
-            if (nome) {
-                passageiros.push({ nome, documento: doc });
-            }
+            if (nome) passageiros.push({ nome, documento: doc });
         });
         return passageiros;
     }
 
     async function gerarPDF(event) {
         event.preventDefault();
-        
         const passageiros = getPassageiros();
-        if (passageiros.length === 0) {
-            Utils.showToast('❌ Adicione pelo menos um passageiro!', 'error');
-            return;
-        }
+        if (passageiros.length === 0) { Utils.showToast('Adicione pelo menos um passageiro!', 'error'); return; }
 
         const horarioSaida = document.getElementById('horarioSaida').value;
         const horarioChegada = document.getElementById('horarioChegada').value;
@@ -1118,253 +437,208 @@
         const clienteEndereco = document.getElementById('clienteEndereco').value.trim();
         const bagagem = document.getElementById('bagagemDespachada').checked;
         const conexao = document.getElementById('temConexao').checked;
-
         const companhia = getCompanhiaByIata(currentOffer.codigo_cia_iata);
 
         try {
-            // Salvar orçamento no banco
             const { data: { session } } = await supabaseClient.auth.getSession();
-            
-            const { data: orcamento, error } = await supabaseClient
-                .from('orcamentos')
-                .insert({
-                    origem: currentOffer.origem,
-                    destino: currentOffer.destino,
-                    data_viagem: currentOffer.data_viagem,
-                    valor: currentOffer.valor,
-                    tipo_cabine: currentOffer.tipo_cabine,
-                    rota: currentOffer.rota,
-                    programa_emissao: currentOffer.programa_emissao,
-                    voo: currentOffer.voo,
-                    codigo_cia_iata: currentOffer.codigo_cia_iata,
-                    horario_saida: horarioSaida,
-                    horario_chegada: horarioChegada,
-                    localizador: localizador,
-                    cliente_nome: clienteNome,
-                    cliente_telefone: clienteTelefone,
-                    cliente_email: clienteEmail,
-                    cliente_endereco: clienteEndereco,
-                    bagagem_despachada: bagagem,
-                    tem_conexao: conexao,
-                    passageiros: passageiros,
-                    user_id: session.user.id
-                })
-                .select()
-                .single();
+            const { data: orcamento, error } = await supabaseClient.from('orcamentos').insert({
+                origem: currentOffer.origem, destino: currentOffer.destino, data_viagem: currentOffer.data_viagem,
+                valor: currentOffer.valor, tipo_cabine: currentOffer.tipo_cabine, rota: currentOffer.rota,
+                programa_emissao: currentOffer.programa_emissao, voo: currentOffer.voo, codigo_cia_iata: currentOffer.codigo_cia_iata,
+                horario_saida: horarioSaida, horario_chegada: horarioChegada, localizador: localizador,
+                cliente_nome: clienteNome, cliente_telefone: clienteTelefone, cliente_email: clienteEmail,
+                cliente_endereco: clienteEndereco, bagagem_despachada: bagagem, tem_conexao: conexao,
+                passageiros: passageiros, user_id: session.user.id
+            }).select().single();
 
-            if (error) throw error;
+            if (error) { console.error('Erro Supabase:', error); throw error; }
 
-            // Gerar PDF
+            // ========== PDF MODELO LATAM ==========
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
             const margin = 15;
+            const pageWidth = 210;
+            const contentWidth = pageWidth - (margin * 2);
             let y = margin;
 
-            // CABEÇALHO COM LOGO
+            const primaryColor = [30, 41, 82];
+            const grayText = [100, 100, 100];
+            const lightGray = [245, 245, 250];
+            const accentColor = [102, 126, 234];
+
+            // CABECALHO - Logo
             if (companhia && companhia.logo_url) {
                 try {
                     const img = new Image();
                     img.crossOrigin = 'anonymous';
-                    await new Promise((resolve, reject) => {
-                        img.onload = resolve;
-                        img.onerror = reject;
-                        img.src = companhia.logo_url;
-                    });
-                    doc.addImage(img, 'PNG', margin, y, 40, 20);
+                    await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = companhia.logo_url; });
+                    doc.addImage(img, 'PNG', margin, y, 45, 22);
                 } catch (e) {
-                    doc.setFontSize(16);
-                    doc.setFont(undefined, 'bold');
-                    doc.text(companhia.nome, margin, y + 12);
+                    doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+                    doc.text(companhia?.nome || 'Companhia Aerea', margin, y + 15);
                 }
+            } else {
+                doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+                doc.text(companhia?.nome || 'Companhia Aerea', margin, y + 15);
             }
 
-            // Número do orçamento e localizador
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(100, 100, 100);
-            doc.text(`Número da compra`, 120, y + 5);
-            doc.text(`Localizador`, 165, y + 5);
-            
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'bold');
-            doc.setTextColor(0, 0, 0);
-            doc.text(`#${orcamento.numero_orcamento}`, 120, y + 12);
-            doc.text(localizador || 'N/A', 165, y + 12);
+            // Numero da compra e Localizador
+            doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
+            doc.text('Numero da compra', 115, y + 5);
+            doc.text('Localizador', 165, y + 5);
 
-            y = 45;
+            doc.setFillColor(...lightGray);
+            doc.roundedRect(115, y + 8, 35, 12, 2, 2, 'F');
+            doc.roundedRect(160, y + 8, 35, 12, 2, 2, 'F');
 
-            // Linha divisória
-            doc.setDrawColor(230, 230, 230);
-            doc.line(margin, y, 195, y);
-            y += 10;
+            doc.setFontSize(10); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+            doc.text(`${orcamento.numero_orcamento}`, 132.5, y + 16, { align: 'center' });
+            doc.text(localizador || 'N/A', 177.5, y + 16, { align: 'center' });
 
-            // INFORMAÇÕES DO VOO
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.setTextColor(0, 0, 0);
-            doc.text('Informações do voo', margin, y);
+            y = 50;
+
+            // INFORMACOES DO VOO
+            doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+            doc.text('Informacoes do voo', margin, y);
             y += 8;
 
-            // Box do itinerário
-            doc.setFillColor(102, 126, 234);
-            doc.roundedRect(margin, y, 180, 10, 2, 2, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
-            doc.text('Itinerário de IDA', margin + 5, y + 7);
-            doc.text(currentOffer.data_viagem ? Utils.formatDateFull(currentOffer.data_viagem) : '--', 80, y + 7);
-            doc.text('1 Trecho', 170, y + 7);
-            y += 18;
+            // Barra azul - Itinerario
+            doc.setFillColor(...primaryColor);
+            doc.roundedRect(margin, y, contentWidth, 12, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255); doc.setFontSize(10);
+            doc.text('Itinerario de IDA', margin + 5, y + 8);
 
-            // Detalhes do voo
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(24);
-            doc.setFont(undefined, 'bold');
-            doc.text(horarioSaida || '--:--', margin, y + 5);
-            doc.text(horarioChegada || '--:--', 160, y + 5);
+            const dataViagemFormatada = currentOffer.data_viagem
+                ? new Date(currentOffer.data_viagem + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
+                : '--';
+            doc.text(dataViagemFormatada.charAt(0).toUpperCase() + dataViagemFormatada.slice(1), 95, y + 8);
+            doc.text('1 Trecho', 175, y + 8);
+            y += 20;
 
-            doc.setFontSize(9);
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(100, 100, 100);
-            const dataViagem = currentOffer.data_viagem ? new Date(currentOffer.data_viagem).toLocaleDateString('pt-BR') : '--';
-            doc.text(dataViagem, margin, y + 12);
-            doc.text(dataViagem, 160, y + 12);
+            // Box do voo
+            doc.setFillColor(255, 255, 255); doc.setDrawColor(230, 230, 235);
+            doc.roundedRect(margin, y, contentWidth, 40, 3, 3, 'FD');
 
-            // Origem e Destino no centro
-            doc.setFontSize(10);
-            doc.text(`Aeroporto de ${currentOffer.origem}`, 55, y);
-            doc.text(`Aeroporto de ${currentOffer.destino}`, 115, y);
+            // Horario saida
+            doc.setFontSize(28); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+            doc.text(horarioSaida || '--:--', margin + 10, y + 18);
+            doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
+            const dataSaida = currentOffer.data_viagem ? new Date(currentOffer.data_viagem + 'T00:00:00').toLocaleDateString('pt-BR') : '--';
+            doc.text(dataSaida, margin + 10, y + 26);
+            doc.setFontSize(8);
+            doc.text(`Aer. ${currentOffer.origem || '--'}`, margin + 10, y + 34);
 
-            doc.setFontSize(18);
-            doc.setFont(undefined, 'bold');
-            doc.setTextColor(0, 0, 0);
-            doc.text(currentOffer.origem || '--', 65, y + 8);
-            doc.text('→', 95, y + 8);
-            doc.text(currentOffer.destino || '--', 115, y + 8);
+            // Centro - Rota
+            const centerX = pageWidth / 2;
+            doc.setFontSize(16); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+            doc.text(currentOffer.origem || '--', centerX - 25, y + 18, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text('----->', centerX, y + 18, { align: 'center' });
+            doc.setFontSize(16);
+            doc.text(currentOffer.destino || '--', centerX + 25, y + 18, { align: 'center' });
+            doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
+            doc.text(currentOffer.voo || '--', centerX, y + 28, { align: 'center' });
 
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(100, 100, 100);
-            doc.text(currentOffer.voo || '--', 90, y + 15);
-
-            y += 30;
-
-            // Linha divisória
-            doc.setDrawColor(230, 230, 230);
-            doc.line(margin, y, 195, y);
-            y += 10;
+            // Horario chegada
+            doc.setFontSize(28); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+            doc.text(horarioChegada || '--:--', pageWidth - margin - 45, y + 18);
+            doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
+            doc.text(dataSaida, pageWidth - margin - 45, y + 26);
+            doc.setFontSize(8);
+            doc.text(`Aer. ${currentOffer.destino || '--'}`, pageWidth - margin - 45, y + 34);
+            y += 50;
 
             // PASSAGEIROS
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
             doc.text(`Passageiros: ${passageiros.length}`, margin, y);
             y += 10;
 
             passageiros.forEach((p, i) => {
-                doc.setFillColor(245, 245, 245);
-                doc.roundedRect(margin, y, 180, 25, 2, 2, 'F');
-                
-                doc.setFontSize(11);
-                doc.setFont(undefined, 'bold');
-                doc.setTextColor(0, 0, 0);
-                doc.text(p.nome.toUpperCase(), margin + 5, y + 8);
-                
+                if (y > 240) { doc.addPage(); y = margin; }
+
+                doc.setFontSize(11); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+                doc.text(p.nome.toUpperCase(), margin, y);
+                doc.setFontSize(9); doc.setTextColor(...accentColor);
+                doc.text(`E-ticket: ${p.documento || '0000000000000'}`, pageWidth - margin, y, { align: 'right' });
+                y += 8;
+
+                doc.setFillColor(...lightGray);
+                doc.roundedRect(margin, y, contentWidth, 28, 2, 2, 'F');
+
+                doc.setFontSize(8); doc.setTextColor(...grayText);
+                doc.text('Ida', margin + 5, y + 8);
                 doc.setFontSize(9);
-                doc.setFont(undefined, 'normal');
-                doc.setTextColor(100, 100, 100);
-                doc.text(`Documento: ${p.documento || 'N/A'}`, margin + 5, y + 16);
-                
-                doc.text('Bagagem:', 120, y + 8);
-                doc.text(bagagem ? '1 x 23kg' : 'Apenas mão', 120, y + 16);
-                
-                y += 30;
+                doc.text('Assentos', margin + 20, y + 8);
+                doc.setTextColor(...primaryColor);
+                doc.text('Nenhum assento definido.', margin + 20, y + 16);
+
+                doc.setTextColor(...grayText); doc.setFontSize(8);
+                doc.text('Bagagens*', margin + 100, y + 8);
+                doc.setFontSize(9); doc.setTextColor(...primaryColor);
+                doc.text('Mao: 1', margin + 100, y + 18);
+                doc.setFontSize(7); doc.setTextColor(...grayText);
+                doc.text('10kg', margin + 100, y + 24);
+                doc.setFontSize(9); doc.setTextColor(...primaryColor);
+                doc.text('Desp: ' + (bagagem ? '1' : '0'), margin + 125, y + 18);
+                doc.setFontSize(7); doc.setTextColor(...grayText);
+                doc.text('23kg', margin + 125, y + 24);
+                y += 35;
             });
 
-            // DADOS DO CLIENTE
-            if (y > 200) {
-                doc.addPage();
-                y = margin;
-            }
+            doc.setFontSize(7); doc.setTextColor(...grayText);
+            doc.text('*Alem da bagagem especificada, cada passageiro pode levar uma bolsa, mochila ou sacola (item pessoal).', margin, y);
+            y += 15;
 
-            doc.setDrawColor(230, 230, 230);
-            doc.line(margin, y, 195, y);
+            // DADOS DO CLIENTE
+            if (y > 220) { doc.addPage(); y = margin; }
+            doc.setDrawColor(230, 230, 235);
+            doc.line(margin, y, pageWidth - margin, y);
             y += 10;
 
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
             doc.text('Dados do Cliente', margin, y);
-            y += 8;
+            y += 10;
 
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text(`Nome: ${clienteNome}`, margin, y);
-            y += 6;
-            doc.text(`Telefone: ${clienteTelefone}`, margin, y);
-            y += 6;
-            doc.text(`Email: ${clienteEmail}`, margin, y);
-            y += 6;
-            if (clienteEndereco) {
-                doc.text(`Endereço: ${clienteEndereco}`, margin, y);
-                y += 6;
-            }
-
+            doc.setFontSize(10); doc.setFont(undefined, 'normal'); doc.setTextColor(60, 60, 60);
+            doc.text(`Nome: ${clienteNome}`, margin, y); y += 7;
+            doc.text(`Telefone: ${clienteTelefone}`, margin, y); y += 7;
+            doc.text(`Email: ${clienteEmail}`, margin, y); y += 7;
+            if (clienteEndereco) { doc.text(`Endereco: ${clienteEndereco}`, margin, y); y += 7; }
             y += 10;
 
             // VALOR TOTAL
-            doc.setFillColor(102, 126, 234);
-            doc.roundedRect(margin, y, 180, 20, 2, 2, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.text('VALOR TOTAL:', margin + 5, y + 13);
-            doc.setFontSize(16);
-            doc.text(Utils.formatCurrency(currentOffer.valor), 140, y + 13);
+            doc.setFillColor(...accentColor);
+            doc.roundedRect(margin, y, contentWidth, 22, 3, 3, 'F');
+            doc.setTextColor(255, 255, 255); doc.setFontSize(12); doc.setFont(undefined, 'bold');
+            doc.text('VALOR TOTAL:', margin + 10, y + 14);
+            doc.setFontSize(18);
+            doc.text(Utils.formatCurrency(currentOffer.valor), pageWidth - margin - 10, y + 14, { align: 'right' });
 
-            // RODAPÉ
-            doc.setFontSize(8);
-            doc.setTextColor(150, 150, 150);
-            doc.text('Este orçamento foi gerado automaticamente pelo Dashboard Premium Milhas', 105, 280, { align: 'center' });
-            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Válido por 7 dias`, 105, 285, { align: 'center' });
+            // RODAPE
+            doc.setFontSize(8); doc.setTextColor(150, 150, 150);
+            doc.text('Este orcamento foi gerado automaticamente pelo Dashboard Premium Milhas', pageWidth / 2, 280, { align: 'center' });
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Valido por 7 dias`, pageWidth / 2, 286, { align: 'center' });
 
-            // Salvar PDF
             const fileName = `Orcamento_${orcamento.numero_orcamento}_${currentOffer.origem}_${currentOffer.destino}.pdf`;
             doc.save(fileName);
 
-            Utils.showToast('✅ Orçamento gerado com sucesso!', 'success');
+            Utils.showToast('Orcamento gerado com sucesso!', 'success');
             closeOrcamentoModal();
 
         } catch (error) {
-            Utils.showToast('❌ Erro: ' + error.message, 'error');
+            console.error('Erro ao gerar orcamento:', error);
+            Utils.showToast('Erro: ' + error.message, 'error');
         }
     }
 
-    document.addEventListener('click', (e) => {
-        if (e.target.id === 'modalOrcamento') {
-            closeOrcamentoModal();
-        }
-    });
+    document.addEventListener('click', (e) => { if (e.target.id === 'modalOrcamento') closeOrcamentoModal(); });
 
-    // ============= AUTH & INITIALIZATION =============
     async function checkAuth() {
         const { data: { session } } = await supabaseClient.auth.getSession();
-        
-        if (!session) {
-            window.location.href = 'login.html';
-            return;
-        }
-
+        if (!session) { window.location.href = 'login.html'; return; }
         document.getElementById('userEmail').textContent = session.user.email;
-
         await carregarCompanhias();
-
         App.init();
-        App.refresh();
-        App.startPolling();
-        App.subscribeRealtime();
-        
-        Utils.showToast('✅ Bem-vindo!', 'success');
     }
 
     async function handleLogout() {
