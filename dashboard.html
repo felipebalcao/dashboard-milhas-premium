@@ -951,10 +951,11 @@
                 values: topDests.map(x => x[1])
             });
 
-            // Airlines - NOVO GRÁFICO
+             // Airlines - NOVO GRÁFICO (ignora vazios)
             const airlineCounts = {};
             this.data.forEach(r => {
-                const iata = r.codigo_cia_iata || 'N/A';
+                const iata = r.codigo_cia_iata;
+                if (!iata || iata.trim() === '') return; // Ignora vazios
                 const companhia = getCompanhiaByIata(iata);
                 const nome = companhia ? companhia.nome : iata;
                 airlineCounts[nome] = (airlineCounts[nome] || 0) + 1;
