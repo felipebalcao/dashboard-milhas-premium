@@ -117,8 +117,8 @@
             border: 1px solid rgba(102, 126, 234, 0.3);
             border-radius: 1rem;
             padding: 2rem;
-            max-width: 600px;
-            width: 90%;
+            max-width: 700px;
+            width: 95%;
             max-height: 90vh;
             overflow-y: auto;
             z-index: 9999;
@@ -138,6 +138,14 @@
             background: rgba(102, 126, 234, 0.5);
             border-radius: 10px;
         }
+
+        .passageiro-card {
+            background: rgba(51, 65, 85, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -145,7 +153,7 @@
     <!-- Hero Section -->
     <div class="hero-gradient py-8">
         <div class="container mx-auto px-4">
-   <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-center mb-4">
                 <div id="userEmail" class="text-gray-400 text-sm"></div>
                 <div class="flex gap-2">
                     <a href="companhias.html" class="btn btn-sm btn-ghost text-gray-400 hover:text-white">
@@ -251,6 +259,12 @@
                 <h3 class="text-xl font-bold text-white mb-4">🎯 Top 5 Destinos</h3>
                 <div id="chartDestinations" style="height: 300px;"></div>
             </div>
+
+            <!-- Airlines Chart - NOVO -->
+            <div class="chart-container md:col-span-2">
+                <h3 class="text-xl font-bold text-white mb-4">🛫 Ofertas por Companhia Aérea</h3>
+                <div id="chartAirlines" style="height: 300px;"></div>
+            </div>
         </div>
 
         <!-- Offers Table -->
@@ -298,12 +312,13 @@
                     <thead>
                         <tr class="text-gray-300">
                             <th>Data</th>
+                            <th>Cia</th>
                             <th>Origem</th>
                             <th>Destino</th>
+                            <th>Voo</th>
                             <th>Pontos</th>
                             <th>Valor</th>
                             <th>Cabine</th>
-                            <th>Programa</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -327,6 +342,14 @@
                 <h3 class="text-lg font-bold text-white mb-3">📋 Dados da Viagem</h3>
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <div>
+                        <span class="text-gray-400">Companhia:</span>
+                        <span id="modalCompanhia" class="text-white font-semibold ml-2">--</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Voo:</span>
+                        <span id="modalVoo" class="text-white font-semibold ml-2">--</span>
+                    </div>
+                    <div>
                         <span class="text-gray-400">Origem:</span>
                         <span id="modalOrigem" class="text-white font-semibold ml-2">--</span>
                     </div>
@@ -335,7 +358,7 @@
                         <span id="modalDestino" class="text-white font-semibold ml-2">--</span>
                     </div>
                     <div>
-                        <span class="text-gray-400">Data Ida:</span>
+                        <span class="text-gray-400">Data:</span>
                         <span id="modalDataIda" class="text-white font-semibold ml-2">--</span>
                     </div>
                     <div>
@@ -347,10 +370,6 @@
                         <span id="modalCabine" class="text-white font-semibold ml-2">--</span>
                     </div>
                     <div>
-                        <span class="text-gray-400">Rota:</span>
-                        <span id="modalRota" class="text-white font-semibold ml-2">--</span>
-                    </div>
-                    <div class="col-span-2">
                         <span class="text-gray-400">Programa:</span>
                         <span id="modalPrograma" class="text-white font-semibold ml-2">--</span>
                     </div>
@@ -359,8 +378,41 @@
 
             <div class="divider"></div>
 
-            <!-- Formulário Cliente -->
+            <!-- Formulário -->
             <form id="formOrcamento" onsubmit="gerarPDF(event)">
+                
+                <!-- Dados do Voo -->
+                <h3 class="text-lg font-bold text-white mb-3">🕐 Horários do Voo</h3>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Horário Saída *</span>
+                        </label>
+                        <input type="time" id="horarioSaida" required 
+                               class="input input-bordered bg-slate-800 text-white" />
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-gray-300">Horário Chegada *</span>
+                        </label>
+                        <input type="time" id="horarioChegada" required 
+                               class="input input-bordered bg-slate-800 text-white" />
+                    </div>
+                </div>
+
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text text-gray-300">Localizador</span>
+                    </label>
+                    <input type="text" id="localizador" 
+                           class="input input-bordered bg-slate-800 text-white w-40" 
+                           placeholder="Ex: GBHTNG"
+                           oninput="this.value = this.value.toUpperCase()" />
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Dados do Cliente -->
                 <h3 class="text-lg font-bold text-white mb-3">👤 Dados do Cliente</h3>
                 
                 <div class="form-control mb-3">
@@ -393,15 +445,30 @@
 
                 <div class="form-control mb-4">
                     <label class="label">
-                        <span class="label-text text-gray-300">Endereço *</span>
+                        <span class="label-text text-gray-300">Endereço</span>
                     </label>
-                    <input type="text" id="clienteEndereco" required 
+                    <input type="text" id="clienteEndereco" 
                            class="input input-bordered bg-slate-800 text-white" 
                            placeholder="Rua, número, cidade - UF" />
                 </div>
 
                 <div class="divider"></div>
 
+                <!-- Passageiros -->
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-lg font-bold text-white">👥 Passageiros</h3>
+                    <button type="button" onclick="addPassageiro()" class="btn btn-sm btn-primary">
+                        + Adicionar
+                    </button>
+                </div>
+
+                <div id="passageirosContainer">
+                    <!-- Passageiros serão adicionados aqui -->
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Opções -->
                 <h3 class="text-lg font-bold text-white mb-3">⚙️ Opções da Viagem</h3>
 
                 <div class="flex flex-col gap-2 mb-6">
@@ -424,11 +491,14 @@
 
     <script>
     // Configuração do Supabase
-    const SUPABASE_URL = 'https://eeyobwuzbloopynmflva.supabase.co'; // TROCAR
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVleW9id3V6Ymxvb3B5bm1mbHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Mzk5NjQsImV4cCI6MjA4NDIxNTk2NH0.LLNFPYGDSVflT2_YWlYeQ4LWxYnyyFy322Ny3TS6D1E'; // TROCAR
+    const SUPABASE_URL = 'https://eeyobwuzbloopynmflva.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVleW9id3V6Ymxvb3B5bm1mbHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Mzk5NjQsImV4cCI6MjA4NDIxNTk2NH0.LLNFPYGDSVflT2_YWlYeQ4LWxYnyyFy322Ny3TS6D1E';
 
     const { createClient } = supabase;
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Cache de companhias
+    let companhiasCache = [];
 
     // ============= UTILITIES =============
     const Utils = {
@@ -463,6 +533,13 @@
             });
         },
 
+        formatDateFull(d) {
+            if (!d) return '--';
+            const dt = new Date(d);
+            const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+            return `${dias[dt.getDay()]}, ${dt.toLocaleDateString('pt-BR')}`;
+        },
+
         formatCurrency(value) {
             if (!value || value === 0) return '--';
             return new Intl.NumberFormat('pt-BR', {
@@ -471,6 +548,24 @@
             }).format(value);
         }
     };
+
+    // ============= CARREGAR COMPANHIAS =============
+    async function carregarCompanhias() {
+        const { data, error } = await supabaseClient
+            .from('companhias')
+            .select('*');
+        
+        if (!error && data) {
+            companhiasCache = data;
+        }
+    }
+
+    function getCompanhiaByIata(iata) {
+        if (!iata) return null;
+        return companhiasCache.find(c => 
+            c.codigo_cia_iata && c.codigo_cia_iata.toUpperCase() === iata.toUpperCase()
+        );
+    }
 
     // ============= DATA MANAGER =============
     const DataManager = {
@@ -634,6 +729,52 @@
                             }
                         }
                     }
+                },
+                tooltip: {
+                    theme: 'dark'
+                }
+            };
+            this.charts[id] = new ApexCharts(document.getElementById(id), options);
+            this.charts[id].render();
+        },
+
+        createHorizontalBarChart(id, data) {
+            this.destroy(id);
+            const options = {
+                series: [{
+                    name: 'Ofertas',
+                    data: data.values
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 300,
+                    background: 'transparent',
+                    toolbar: { show: false },
+                    animations: { enabled: true, speed: 800 }
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        columnWidth: '60%',
+                        borderRadius: 8,
+                        dataLabels: { position: 'right' }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    style: { colors: ['#fff'] }
+                },
+                colors: ['#667eea'],
+                xaxis: {
+                    categories: data.labels,
+                    labels: { style: { colors: '#94a3b8' } }
+                },
+                yaxis: {
+                    labels: { style: { colors: '#94a3b8' } }
+                },
+                grid: {
+                    borderColor: '#334155',
+                    strokeDashArray: 5
                 },
                 tooltip: {
                     theme: 'dark'
@@ -809,6 +950,20 @@
                 labels: topDests.map(x => x[0]),
                 values: topDests.map(x => x[1])
             });
+
+            // Airlines - NOVO GRÁFICO
+            const airlineCounts = {};
+            this.data.forEach(r => {
+                const iata = r.codigo_cia_iata || 'N/A';
+                const companhia = getCompanhiaByIata(iata);
+                const nome = companhia ? companhia.nome : iata;
+                airlineCounts[nome] = (airlineCounts[nome] || 0) + 1;
+            });
+            const topAirlines = Object.entries(airlineCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            ChartManager.createHorizontalBarChart('chartAirlines', {
+                labels: topAirlines.map(x => x[0]),
+                values: topAirlines.map(x => x[1])
+            });
         },
 
         renderTable() {
@@ -821,47 +976,47 @@
             const destino = document.getElementById('filterDestino').value.toLowerCase().trim();
             const limit = document.getElementById('tableLimit').value;
 
-            // Filtrar dados
             let filtered = this.data.filter(r => {
                 const origemMatch = !origem || (r.origem && r.origem.toLowerCase().includes(origem));
                 const destinoMatch = !destino || (r.destino && r.destino.toLowerCase().includes(destino));
                 return origemMatch && destinoMatch;
             });
 
-            // Aplicar limite
             const displayData = limit === 'all' ? filtered : filtered.slice(0, parseInt(limit));
 
-            // Atualizar contadores
             document.getElementById('tableCount').textContent = displayData.length;
             document.getElementById('tableTotal').textContent = this.data.length;
 
-            // Renderizar tabela
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
             if (displayData.length === 0) {
                 const row = tbody.insertRow();
-                row.innerHTML = `<td colspan="8" class="text-center text-gray-400 py-8">Nenhuma oferta encontrada</td>`;
+                row.innerHTML = `<td colspan="9" class="text-center text-gray-400 py-8">Nenhuma oferta encontrada</td>`;
                 return;
             }
 
             displayData.forEach(r => {
                 const row = tbody.insertRow();
                 const offerData = JSON.stringify(r).replace(/"/g, '&quot;');
+                const companhia = getCompanhiaByIata(r.codigo_cia_iata);
+                const ciaDisplay = companhia ? companhia.nome : (r.codigo_cia_iata || '--');
+                
                 row.innerHTML = `
                     <td>${Utils.formatDateShort(r.created_at)}</td>
+                    <td><span class="badge badge-sm badge-primary">${ciaDisplay}</span></td>
                     <td>${r.origem || '--'}</td>
                     <td>${r.destino || '--'}</td>
+                    <td>${r.voo || '--'}</td>
                     <td>${r.pontos || '--'}</td>
                     <td class="font-semibold text-green-400">${Utils.formatCurrency(r.valor)}</td>
                     <td>${r.tipo_cabine || '--'}</td>
-                    <td>${r.programa_emissao || '--'}</td>
                     <td>
                         <div class="flex gap-1">
                             ${r.link_acesso ? 
-                                `<a href="${r.link_acesso}" target="_blank" class="btn btn-xs btn-primary">🔗 Ver</a>` : 
+                                `<a href="${r.link_acesso}" target="_blank" class="btn btn-xs btn-primary">🔗</a>` : 
                                 ''}
-                            <button onclick='openOrcamentoModal(${offerData})' class="btn btn-xs btn-accent">💼 Orçamento</button>
+                            <button onclick='openOrcamentoModal(${offerData})' class="btn btn-xs btn-accent">💼</button>
                         </div>
                     </td>
                 `;
@@ -878,23 +1033,27 @@
 
     // ============= MODAL E PDF =============
     let currentOffer = null;
+    let passageiroCount = 0;
 
     function openOrcamentoModal(offer) {
         currentOffer = offer;
         
-        // Preencher dados da oferta
+        const companhia = getCompanhiaByIata(offer.codigo_cia_iata);
+        
+        document.getElementById('modalCompanhia').textContent = companhia ? companhia.nome : (offer.codigo_cia_iata || '--');
+        document.getElementById('modalVoo').textContent = offer.voo || '--';
         document.getElementById('modalOrigem').textContent = offer.origem || '--';
         document.getElementById('modalDestino').textContent = offer.destino || '--';
-        document.getElementById('modalDataIda').textContent = offer.data_viagem ? new Date(offer.data_viagem).toLocaleDateString('pt-BR') : '--';
+        document.getElementById('modalDataIda').textContent = offer.data_viagem ? Utils.formatDateFull(offer.data_viagem) : '--';
         document.getElementById('modalValor').textContent = Utils.formatCurrency(offer.valor);
         document.getElementById('modalCabine').textContent = offer.tipo_cabine || '--';
-        document.getElementById('modalRota').textContent = offer.rota || '--';
         document.getElementById('modalPrograma').textContent = offer.programa_emissao || '--';
         
-        // Limpar formulário
         document.getElementById('formOrcamento').reset();
+        document.getElementById('passageirosContainer').innerHTML = '';
+        passageiroCount = 0;
+        addPassageiro();
         
-        // Mostrar modal
         document.getElementById('modalOrcamento').classList.add('active');
     }
 
@@ -903,127 +1062,283 @@
         currentOffer = null;
     }
 
-    function gerarPDF(event) {
-        event.preventDefault();
-        
-        // Pegar dados do formulário
-        const nome = document.getElementById('clienteNome').value;
-        const telefone = document.getElementById('clienteTelefone').value;
-        const email = document.getElementById('clienteEmail').value;
-        const endereco = document.getElementById('clienteEndereco').value;
-        const bagagem = document.getElementById('bagagemDespachada').checked;
-        const conexao = document.getElementById('temConexao').checked;
-        
-        // Criar PDF
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        // Configuração
-        const margin = 20;
-        let y = margin;
-        
-        // Cabeçalho
-        doc.setFillColor(102, 126, 234);
-        doc.rect(0, 0, 210, 40, 'F');
-        
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(24);
-        doc.setFont(undefined, 'bold');
-        doc.text('ORCAMENTO DE VIAGEM', margin, 25);
-        
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text('Dashboard Premium Milhas', margin, 33);
-        
-        y = 50;
-        doc.setTextColor(0, 0, 0);
-        
-        // Data do orçamento
-        doc.setFontSize(10);
-        doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 150, y);
-        y += 15;
-        
-        // Dados da Viagem
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('DADOS DA VIAGEM', margin, y);
-        y += 10;
-        
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text(`Origem: ${currentOffer.origem || '--'}`, margin, y);
-        y += 7;
-        doc.text(`Destino: ${currentOffer.destino || '--'}`, margin, y);
-        y += 7;
-        doc.text(`Data da Ida: ${currentOffer.data_viagem ? new Date(currentOffer.data_viagem).toLocaleDateString('pt-BR') : '--'}`, margin, y);
-        y += 7;
-        doc.text(`Valor: ${Utils.formatCurrency(currentOffer.valor)}`, margin, y);
-        y += 7;
-        doc.text(`Tipo de Cabine: ${currentOffer.tipo_cabine || '--'}`, margin, y);
-        y += 7;
-        doc.text(`Rota: ${currentOffer.rota || '--'}`, margin, y);
-        y += 7;
-        doc.text(`Programa de Emissao: ${currentOffer.programa_emissao || '--'}`, margin, y);
-        y += 15;
-        
-        // Linha divisória
-        doc.setDrawColor(102, 126, 234);
-        doc.line(margin, y, 190, y);
-        y += 10;
-        
-        // Dados do Cliente
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('DADOS DO CLIENTE', margin, y);
-        y += 10;
-        
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text(`Nome: ${nome}`, margin, y);
-        y += 7;
-        doc.text(`Telefone: ${telefone}`, margin, y);
-        y += 7;
-        doc.text(`Email: ${email}`, margin, y);
-        y += 7;
-        doc.text(`Endereco: ${endereco}`, margin, y);
-        y += 15;
-        
-        // Linha divisória
-        doc.line(margin, y, 190, y);
-        y += 10;
-        
-        // Opções da Viagem
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('OPCOES DA VIAGEM', margin, y);
-        y += 10;
-        
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text(`Bagagem Despachada: ${bagagem ? 'Sim' : 'Nao'}`, margin, y);
-        y += 7;
-        doc.text(`Tem Conexao: ${conexao ? 'Sim' : 'Nao'}`, margin, y);
-        y += 20;
-        
-        // Rodapé
-        doc.setFillColor(240, 240, 240);
-        doc.rect(0, 270, 210, 27, 'F');
-        
-        doc.setFontSize(8);
-        doc.setTextColor(100, 100, 100);
-        doc.text('Este orcamento foi gerado automaticamente pelo Dashboard Premium Milhas', 105, 280, { align: 'center' });
-        doc.text('Valido por 7 dias a partir da data de emissao', 105, 285, { align: 'center' });
-        
-        // Salvar PDF
-        const fileName = `Orcamento_${currentOffer.origem}_${currentOffer.destino}_${new Date().getTime()}.pdf`;
-        doc.save(fileName);
-        
-        // Fechar modal
-        Utils.showToast('✅ PDF gerado com sucesso!', 'success');
-        closeOrcamentoModal();
+    function addPassageiro() {
+        passageiroCount++;
+        const container = document.getElementById('passageirosContainer');
+        const div = document.createElement('div');
+        div.className = 'passageiro-card';
+        div.id = `passageiro-${passageiroCount}`;
+        div.innerHTML = `
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-white font-semibold">Passageiro ${passageiroCount}</span>
+                ${passageiroCount > 1 ? `<button type="button" onclick="removePassageiro(${passageiroCount})" class="btn btn-xs btn-error">✕</button>` : ''}
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <input type="text" placeholder="Nome completo *" required
+                       class="input input-sm input-bordered bg-slate-700 text-white passageiro-nome" />
+                <input type="text" placeholder="Documento (CPF/RG)"
+                       class="input input-sm input-bordered bg-slate-700 text-white passageiro-doc" />
+            </div>
+        `;
+        container.appendChild(div);
     }
 
-    // Fechar modal ao clicar fora
+    function removePassageiro(id) {
+        document.getElementById(`passageiro-${id}`).remove();
+    }
+
+    function getPassageiros() {
+        const passageiros = [];
+        document.querySelectorAll('.passageiro-card').forEach(card => {
+            const nome = card.querySelector('.passageiro-nome').value.trim();
+            const doc = card.querySelector('.passageiro-doc').value.trim();
+            if (nome) {
+                passageiros.push({ nome, documento: doc });
+            }
+        });
+        return passageiros;
+    }
+
+    async function gerarPDF(event) {
+        event.preventDefault();
+        
+        const passageiros = getPassageiros();
+        if (passageiros.length === 0) {
+            Utils.showToast('❌ Adicione pelo menos um passageiro!', 'error');
+            return;
+        }
+
+        const horarioSaida = document.getElementById('horarioSaida').value;
+        const horarioChegada = document.getElementById('horarioChegada').value;
+        const localizador = document.getElementById('localizador').value.trim();
+        const clienteNome = document.getElementById('clienteNome').value.trim();
+        const clienteTelefone = document.getElementById('clienteTelefone').value.trim();
+        const clienteEmail = document.getElementById('clienteEmail').value.trim();
+        const clienteEndereco = document.getElementById('clienteEndereco').value.trim();
+        const bagagem = document.getElementById('bagagemDespachada').checked;
+        const conexao = document.getElementById('temConexao').checked;
+
+        const companhia = getCompanhiaByIata(currentOffer.codigo_cia_iata);
+
+        try {
+            // Salvar orçamento no banco
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            const { data: orcamento, error } = await supabaseClient
+                .from('orcamentos')
+                .insert({
+                    origem: currentOffer.origem,
+                    destino: currentOffer.destino,
+                    data_viagem: currentOffer.data_viagem,
+                    valor: currentOffer.valor,
+                    tipo_cabine: currentOffer.tipo_cabine,
+                    rota: currentOffer.rota,
+                    programa_emissao: currentOffer.programa_emissao,
+                    voo: currentOffer.voo,
+                    codigo_cia_iata: currentOffer.codigo_cia_iata,
+                    horario_saida: horarioSaida,
+                    horario_chegada: horarioChegada,
+                    localizador: localizador,
+                    cliente_nome: clienteNome,
+                    cliente_telefone: clienteTelefone,
+                    cliente_email: clienteEmail,
+                    cliente_endereco: clienteEndereco,
+                    bagagem_despachada: bagagem,
+                    tem_conexao: conexao,
+                    passageiros: passageiros,
+                    user_id: session.user.id
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            // Gerar PDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const margin = 15;
+            let y = margin;
+
+            // CABEÇALHO COM LOGO
+            if (companhia && companhia.logo_url) {
+                try {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = reject;
+                        img.src = companhia.logo_url;
+                    });
+                    doc.addImage(img, 'PNG', margin, y, 40, 20);
+                } catch (e) {
+                    doc.setFontSize(16);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(companhia.nome, margin, y + 12);
+                }
+            }
+
+            // Número do orçamento e localizador
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Número da compra`, 120, y + 5);
+            doc.text(`Localizador`, 165, y + 5);
+            
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`#${orcamento.numero_orcamento}`, 120, y + 12);
+            doc.text(localizador || 'N/A', 165, y + 12);
+
+            y = 45;
+
+            // Linha divisória
+            doc.setDrawColor(230, 230, 230);
+            doc.line(margin, y, 195, y);
+            y += 10;
+
+            // INFORMAÇÕES DO VOO
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text('Informações do voo', margin, y);
+            y += 8;
+
+            // Box do itinerário
+            doc.setFillColor(102, 126, 234);
+            doc.roundedRect(margin, y, 180, 10, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.text('Itinerário de IDA', margin + 5, y + 7);
+            doc.text(currentOffer.data_viagem ? Utils.formatDateFull(currentOffer.data_viagem) : '--', 80, y + 7);
+            doc.text('1 Trecho', 170, y + 7);
+            y += 18;
+
+            // Detalhes do voo
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(24);
+            doc.setFont(undefined, 'bold');
+            doc.text(horarioSaida || '--:--', margin, y + 5);
+            doc.text(horarioChegada || '--:--', 160, y + 5);
+
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(100, 100, 100);
+            const dataViagem = currentOffer.data_viagem ? new Date(currentOffer.data_viagem).toLocaleDateString('pt-BR') : '--';
+            doc.text(dataViagem, margin, y + 12);
+            doc.text(dataViagem, 160, y + 12);
+
+            // Origem e Destino no centro
+            doc.setFontSize(10);
+            doc.text(`Aeroporto de ${currentOffer.origem}`, 55, y);
+            doc.text(`Aeroporto de ${currentOffer.destino}`, 115, y);
+
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(currentOffer.origem || '--', 65, y + 8);
+            doc.text('→', 95, y + 8);
+            doc.text(currentOffer.destino || '--', 115, y + 8);
+
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(100, 100, 100);
+            doc.text(currentOffer.voo || '--', 90, y + 15);
+
+            y += 30;
+
+            // Linha divisória
+            doc.setDrawColor(230, 230, 230);
+            doc.line(margin, y, 195, y);
+            y += 10;
+
+            // PASSAGEIROS
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Passageiros: ${passageiros.length}`, margin, y);
+            y += 10;
+
+            passageiros.forEach((p, i) => {
+                doc.setFillColor(245, 245, 245);
+                doc.roundedRect(margin, y, 180, 25, 2, 2, 'F');
+                
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(0, 0, 0);
+                doc.text(p.nome.toUpperCase(), margin + 5, y + 8);
+                
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Documento: ${p.documento || 'N/A'}`, margin + 5, y + 16);
+                
+                doc.text('Bagagem:', 120, y + 8);
+                doc.text(bagagem ? '1 x 23kg' : 'Apenas mão', 120, y + 16);
+                
+                y += 30;
+            });
+
+            // DADOS DO CLIENTE
+            if (y > 200) {
+                doc.addPage();
+                y = margin;
+            }
+
+            doc.setDrawColor(230, 230, 230);
+            doc.line(margin, y, 195, y);
+            y += 10;
+
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text('Dados do Cliente', margin, y);
+            y += 8;
+
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Nome: ${clienteNome}`, margin, y);
+            y += 6;
+            doc.text(`Telefone: ${clienteTelefone}`, margin, y);
+            y += 6;
+            doc.text(`Email: ${clienteEmail}`, margin, y);
+            y += 6;
+            if (clienteEndereco) {
+                doc.text(`Endereço: ${clienteEndereco}`, margin, y);
+                y += 6;
+            }
+
+            y += 10;
+
+            // VALOR TOTAL
+            doc.setFillColor(102, 126, 234);
+            doc.roundedRect(margin, y, 180, 20, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('VALOR TOTAL:', margin + 5, y + 13);
+            doc.setFontSize(16);
+            doc.text(Utils.formatCurrency(currentOffer.valor), 140, y + 13);
+
+            // RODAPÉ
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text('Este orçamento foi gerado automaticamente pelo Dashboard Premium Milhas', 105, 280, { align: 'center' });
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Válido por 7 dias`, 105, 285, { align: 'center' });
+
+            // Salvar PDF
+            const fileName = `Orcamento_${orcamento.numero_orcamento}_${currentOffer.origem}_${currentOffer.destino}.pdf`;
+            doc.save(fileName);
+
+            Utils.showToast('✅ Orçamento gerado com sucesso!', 'success');
+            closeOrcamentoModal();
+
+        } catch (error) {
+            Utils.showToast('❌ Erro: ' + error.message, 'error');
+        }
+    }
+
     document.addEventListener('click', (e) => {
         if (e.target.id === 'modalOrcamento') {
             closeOrcamentoModal();
@@ -1039,10 +1354,10 @@
             return;
         }
 
-        // Mostrar email do usuário
         document.getElementById('userEmail').textContent = session.user.email;
 
-        // Inicializar app
+        await carregarCompanhias();
+
         App.init();
         App.refresh();
         App.startPolling();
@@ -1056,7 +1371,6 @@
         window.location.href = 'login.html';
     }
 
-    // Iniciar
     checkAuth();
     </script>
 </body>
