@@ -1154,23 +1154,14 @@
 
             if (error) throw error;
 
- // Gerar PDF - Modelo Profissional estilo LATAM
+            // Gerar PDF
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-
+            
             const margin = 15;
-            const pageWidth = 210;
-            const contentWidth = pageWidth - (margin * 2);
             let y = margin;
 
-            // Cores do tema
-            const primaryColor = [30, 41, 82]; // Azul escuro
-            const grayText = [100, 100, 100];
-            const lightGray = [245, 245, 250];
-            const accentColor = [102, 126, 234]; // Roxo/azul do sistema
-
-            // ========== CABEÇALHO ==========
-            // Logo da companhia
+            // CABEÇALHO COM LOGO
             if (companhia && companhia.logo_url) {
                 try {
                     const img = new Image();
@@ -1180,243 +1171,175 @@
                         img.onerror = reject;
                         img.src = companhia.logo_url;
                     });
-                    doc.addImage(img, 'PNG', margin, y, 45, 22);
+                    doc.addImage(img, 'PNG', margin, y, 40, 20);
                 } catch (e) {
-                    doc.setFontSize(18);
+                    doc.setFontSize(16);
                     doc.setFont(undefined, 'bold');
-                    doc.setTextColor(...primaryColor);
-                    doc.text(companhia?.nome || 'Companhia Aérea', margin, y + 15);
+                    doc.text(companhia.nome, margin, y + 12);
                 }
-            } else {
-                doc.setFontSize(18);
-                doc.setFont(undefined, 'bold');
-                doc.setTextColor(...primaryColor);
-                doc.text(companhia?.nome || 'Companhia Aérea', margin, y + 15);
             }
 
-            // Número da compra e Localizador (lado direito)
-            doc.setFontSize(9);
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(...grayText);
-            doc.text('Número da compra', 115, y + 5);
-            doc.text('Localizador', 165, y + 5);
-
-            // Boxes com valores
-            doc.setFillColor(...lightGray);
-            doc.roundedRect(115, y + 8, 35, 12, 2, 2, 'F');
-            doc.roundedRect(160, y + 8, 35, 12, 2, 2, 'F');
-
+            // Número do orçamento e localizador
             doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Número da compra`, 120, y + 5);
+            doc.text(`Localizador`, 165, y + 5);
+            
+            doc.setFontSize(11);
             doc.setFont(undefined, 'bold');
-            doc.setTextColor(...primaryColor);
-            doc.text(`${orcamento.numero_orcamento}`, 132.5, y + 16, { align: 'center' });
-            doc.text(localizador || 'N/A', 177.5, y + 16, { align: 'center' });
+            doc.setTextColor(0, 0, 0);
+            doc.text(`#${orcamento.numero_orcamento}`, 120, y + 12);
+            doc.text(localizador || 'N/A', 165, y + 12);
 
-            y = 50;
+            y = 45;
 
-            // ========== INFORMAÇÕES DO VOO ==========
-            doc.setFontSize(13);
+            // Linha divisória
+            doc.setDrawColor(230, 230, 230);
+            doc.line(margin, y, 195, y);
+            y += 10;
+
+            // INFORMAÇÕES DO VOO
+            doc.setFontSize(12);
             doc.setFont(undefined, 'bold');
-            doc.setTextColor(...primaryColor);
+            doc.setTextColor(0, 0, 0);
             doc.text('Informações do voo', margin, y);
             y += 8;
 
-            // Barra azul escuro - Itinerário de IDA
-            doc.setFillColor(...primaryColor);
-            doc.roundedRect(margin, y, contentWidth, 12, 2, 2, 'F');
-
+            // Box do itinerário
+            doc.setFillColor(102, 126, 234);
+            doc.roundedRect(margin, y, 180, 10, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(10);
-            doc.text('✈  Itinerário de IDA', margin + 5, y + 8);
+            doc.text('Itinerário de IDA', margin + 5, y + 7);
+            doc.text(currentOffer.data_viagem ? Utils.formatDateFull(currentOffer.data_viagem) : '--', 80, y + 7);
+            doc.text('1 Trecho', 170, y + 7);
+            y += 18;
 
-            // Data formatada
-            const dataViagemFormatada = currentOffer.data_viagem
-                ? new Date(currentOffer.data_viagem + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
-                : '--';
-            doc.text(dataViagemFormatada.charAt(0).toUpperCase() + dataViagemFormatada.slice(1), 95, y + 8);
-            doc.text('1 Trecho', 175, y + 8);
-
-            y += 20;
-
-            // Box do voo
-            doc.setFillColor(255, 255, 255);
-            doc.setDrawColor(230, 230, 235);
-            doc.roundedRect(margin, y, contentWidth, 40, 3, 3, 'FD');
-
-            // Horário de saída (esquerda)
-            doc.setFontSize(28);
+            // Detalhes do voo
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(24);
             doc.setFont(undefined, 'bold');
-            doc.setTextColor(...primaryColor);
-            doc.text(horarioSaida || '--:--', margin + 10, y + 18);
+            doc.text(horarioSaida || '--:--', margin, y + 5);
+            doc.text(horarioChegada || '--:--', 160, y + 5);
 
             doc.setFontSize(9);
             doc.setFont(undefined, 'normal');
-            doc.setTextColor(...grayText);
-            const dataSaida = currentOffer.data_viagem ? new Date(currentOffer.data_viagem + 'T00:00:00').toLocaleDateString('pt-BR') : '--';
-            doc.text(dataSaida, margin + 10, y + 26);
+            doc.setTextColor(100, 100, 100);
+            const dataViagem = currentOffer.data_viagem ? new Date(currentOffer.data_viagem).toLocaleDateString('pt-BR') : '--';
+            doc.text(dataViagem, margin, y + 12);
+            doc.text(dataViagem, 160, y + 12);
 
-            // Aeroporto origem
-            doc.setFontSize(8);
-            doc.text(`Aer. ${currentOffer.origem || '--'}`, margin + 10, y + 34);
+            // Origem e Destino no centro
+            doc.setFontSize(10);
+            doc.text(`Aeroporto de ${currentOffer.origem}`, 55, y);
+            doc.text(`Aeroporto de ${currentOffer.destino}`, 115, y);
 
-            // Centro - Rota com códigos
-            const centerX = pageWidth / 2;
-            doc.setFontSize(16);
+            doc.setFontSize(18);
             doc.setFont(undefined, 'bold');
-            doc.setTextColor(...primaryColor);
-            doc.text(currentOffer.origem || '--', centerX - 25, y + 18, { align: 'center' });
+            doc.setTextColor(0, 0, 0);
+            doc.text(currentOffer.origem || '--', 65, y + 8);
+            doc.text('→', 95, y + 8);
+            doc.text(currentOffer.destino || '--', 115, y + 8);
+
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(100, 100, 100);
+            doc.text(currentOffer.voo || '--', 90, y + 15);
+
+            y += 30;
+
+            // Linha divisória
+            doc.setDrawColor(230, 230, 230);
+            doc.line(margin, y, 195, y);
+            y += 10;
+
+            // PASSAGEIROS
             doc.setFontSize(12);
-            doc.text('────  ✈  ────', centerX, y + 18, { align: 'center' });
-            doc.setFontSize(16);
-            doc.text(currentOffer.destino || '--', centerX + 25, y + 18, { align: 'center' });
-
-            // Número do voo
-            doc.setFontSize(9);
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(...grayText);
-            doc.text(currentOffer.voo || '--', centerX, y + 28, { align: 'center' });
-
-            // Horário de chegada (direita)
-            doc.setFontSize(28);
             doc.setFont(undefined, 'bold');
-            doc.setTextColor(...primaryColor);
-            doc.text(horarioChegada || '--:--', pageWidth - margin - 45, y + 18);
-
-            doc.setFontSize(9);
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(...grayText);
-            doc.text(dataSaida, pageWidth - margin - 45, y + 26);
-
-            // Aeroporto destino
-            doc.setFontSize(8);
-            doc.text(`Aer. ${currentOffer.destino || '--'}`, pageWidth - margin - 45, y + 34);
-
-            y += 50;
-
-            // ========== PASSAGEIROS ==========
-            doc.setFontSize(13);
-            doc.setFont(undefined, 'bold');
-            doc.setTextColor(...primaryColor);
+            doc.setTextColor(0, 0, 0);
             doc.text(`Passageiros: ${passageiros.length}`, margin, y);
             y += 10;
 
             passageiros.forEach((p, i) => {
-                if (y > 240) {
-                    doc.addPage();
-                    y = margin;
-                }
-
-                // Nome do passageiro e E-ticket
+                doc.setFillColor(245, 245, 245);
+                doc.roundedRect(margin, y, 180, 25, 2, 2, 'F');
+                
                 doc.setFontSize(11);
                 doc.setFont(undefined, 'bold');
-                doc.setTextColor(...primaryColor);
-                doc.text(p.nome.toUpperCase(), margin, y);
-
+                doc.setTextColor(0, 0, 0);
+                doc.text(p.nome.toUpperCase(), margin + 5, y + 8);
+                
                 doc.setFontSize(9);
-                doc.setTextColor(...accentColor);
-                const eticket = `E-ticket: ${p.documento || '0000000000000'}`;
-                doc.text(eticket, pageWidth - margin, y, { align: 'right' });
-
-                y += 8;
-
-                // Box cinza com detalhes
-                doc.setFillColor(...lightGray);
-                doc.roundedRect(margin, y, contentWidth, 28, 2, 2, 'F');
-
-                // Coluna - Ida/Assentos
-                doc.setFontSize(8);
-                doc.setTextColor(...grayText);
-                doc.text('Ida', margin + 5, y + 8);
-                doc.text('✈', margin + 5, y + 16);
-
-                doc.setFontSize(9);
-                doc.text('Assentos', margin + 20, y + 8);
-                doc.setTextColor(...primaryColor);
-                doc.text('Nenhum assento definido.', margin + 20, y + 16);
-
-                // Coluna - Bagagens
-                doc.setTextColor(...grayText);
-                doc.setFontSize(8);
-                doc.text('Bagagens*', margin + 100, y + 8);
-
-                doc.setFontSize(9);
-                doc.setTextColor(...primaryColor);
-                doc.text('🎒 1', margin + 100, y + 18);
-                doc.setFontSize(7);
-                doc.setTextColor(...grayText);
-                doc.text('10kg', margin + 100, y + 24);
-
-                doc.setFontSize(9);
-                doc.setTextColor(...primaryColor);
-                doc.text('🧳 ' + (bagagem ? '1' : '0'), margin + 120, y + 18);
-                doc.setFontSize(7);
-                doc.setTextColor(...grayText);
-                doc.text('23kg', margin + 120, y + 24);
-
-                y += 35;
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Documento: ${p.documento || 'N/A'}`, margin + 5, y + 16);
+                
+                doc.text('Bagagem:', 120, y + 8);
+                doc.text(bagagem ? '1 x 23kg' : 'Apenas mão', 120, y + 16);
+                
+                y += 30;
             });
 
-            // Nota sobre bagagem
-            doc.setFontSize(7);
-            doc.setTextColor(...grayText);
-            doc.text('*Além da bagagem especificada acima, cada passageiro pode levar consigo uma bolsa, mochila ou sacola (considerado item pessoal).', margin, y);
-
-            y += 15;
-
-            // ========== DADOS DO CLIENTE ==========
-            if (y > 220) {
+            // DADOS DO CLIENTE
+            if (y > 200) {
                 doc.addPage();
                 y = margin;
             }
 
-            doc.setDrawColor(230, 230, 235);
-            doc.line(margin, y, pageWidth - margin, y);
+            doc.setDrawColor(230, 230, 230);
+            doc.line(margin, y, 195, y);
             y += 10;
 
-            doc.setFontSize(13);
+            doc.setFontSize(12);
             doc.setFont(undefined, 'bold');
-            doc.setTextColor(...primaryColor);
+            doc.setTextColor(0, 0, 0);
             doc.text('Dados do Cliente', margin, y);
-            y += 10;
+            y += 8;
 
             doc.setFontSize(10);
             doc.setFont(undefined, 'normal');
-            doc.setTextColor(60, 60, 60);
-
             doc.text(`Nome: ${clienteNome}`, margin, y);
-            y += 7;
+            y += 6;
             doc.text(`Telefone: ${clienteTelefone}`, margin, y);
-            y += 7;
+            y += 6;
             doc.text(`Email: ${clienteEmail}`, margin, y);
-            y += 7;
+            y += 6;
             if (clienteEndereco) {
                 doc.text(`Endereço: ${clienteEndereco}`, margin, y);
-                y += 7;
+                y += 6;
             }
 
             y += 10;
 
-            // ========== VALOR TOTAL ==========
-            doc.setFillColor(...accentColor);
-            doc.roundedRect(margin, y, contentWidth, 22, 3, 3, 'F');
-
+            // VALOR TOTAL
+            doc.setFillColor(102, 126, 234);
+            doc.roundedRect(margin, y, 180, 20, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(12);
             doc.setFont(undefined, 'bold');
-            doc.text('VALOR TOTAL:', margin + 10, y + 14);
+            doc.text('VALOR TOTAL:', margin + 5, y + 13);
+            doc.setFontSize(16);
+            doc.text(Utils.formatCurrency(currentOffer.valor), 140, y + 13);
 
-            doc.setFontSize(18);
-            doc.text(Utils.formatCurrency(currentOffer.valor), pageWidth - margin - 10, y + 14, { align: 'right' });
-
-            // ========== RODAPÉ ==========
+            // RODAPÉ
             doc.setFontSize(8);
             doc.setTextColor(150, 150, 150);
-            doc.text('Este orçamento foi gerado automaticamente pelo Dashboard Premium Milhas', pageWidth / 2, 280, { align: 'center' });
-            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Válido por 7 dias`, pageWidth / 2, 286, { align: 'center' });
+            doc.text('Este orçamento foi gerado automaticamente pelo Dashboard Premium Milhas', 105, 280, { align: 'center' });
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Válido por 7 dias`, 105, 285, { align: 'center' });
 
             // Salvar PDF
             const fileName = `Orcamento_${orcamento.numero_orcamento}_${currentOffer.origem}_${currentOffer.destino}.pdf`;
             doc.save(fileName);
+
+            Utils.showToast('✅ Orçamento gerado com sucesso!', 'success');
+            closeOrcamentoModal();
+
+        } catch (error) {
+            Utils.showToast('❌ Erro: ' + error.message, 'error');
+        }
+    }
+
     document.addEventListener('click', (e) => {
         if (e.target.id === 'modalOrcamento') {
             closeOrcamentoModal();
