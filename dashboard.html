@@ -522,7 +522,7 @@ async function gerarPDF(event) {
         doc.text('1 Trecho', 175, y + 8);
         y += 20;
 
-               // Box do voo - FORMATO LATAM
+  // Box do voo - FORMATO LATAM
         doc.setFillColor(255, 255, 255); doc.setDrawColor(230, 230, 235);
         doc.roundedRect(margin, y, contentWidth, 38, 3, 3, 'FD');
 
@@ -530,36 +530,24 @@ async function gerarPDF(event) {
         
         // Coluna 1 - Horário Saída (esquerda)
         doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-        doc.text(horarioSaida || '--:--', margin + 12, boxY + 14);
+        doc.text(horarioSaida || '--:--', margin + 15, boxY + 16);
         doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
         const dataSaida = currentOffer.data_viagem ? new Date(currentOffer.data_viagem + 'T00:00:00').toLocaleDateString('pt-BR') : '--';
-        doc.text(dataSaida, margin + 12, boxY + 22);
+        doc.text(dataSaida, margin + 15, boxY + 24);
 
-        // Coluna 2 - Aeroporto Origem
-        doc.setFontSize(8); doc.setTextColor(...grayText);
-        doc.text(`Aer. ${currentOffer.origem || '--'}`, margin + 45, boxY + 12);
-        doc.text(currentOffer.origem_cidade || '', margin + 45, boxY + 18);
-
-        // Coluna 3 - Centro: Códigos e Voo
+        // Centro: Códigos e Voo
         const centerX = pageWidth / 2;
-        doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-        doc.text(`- ${currentOffer.origem || '--'}`, centerX - 8, boxY + 14, { align: 'right' });
-        doc.text('>', centerX, boxY + 14, { align: 'center' });
-        doc.text(`${currentOffer.destino || '--'} -`, centerX + 8, boxY + 14, { align: 'left' });
+        doc.setFontSize(16); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text(`${currentOffer.origem || '--'}  >  ${currentOffer.destino || '--'}`, centerX, boxY + 16, { align: 'center' });
         
         doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
-        doc.text(currentOffer.voo || '--', centerX, boxY + 23, { align: 'center' });
-
-        // Coluna 4 - Aeroporto Destino
-        doc.setFontSize(8); doc.setTextColor(...grayText);
-        doc.text(`Aer. ${currentOffer.destino || '--'}`, margin + 125, boxY + 12);
-        doc.text(currentOffer.destino_cidade || '', margin + 125, boxY + 18);
+        doc.text(currentOffer.voo || '--', centerX, boxY + 26, { align: 'center' });
 
         // Coluna 5 - Horário Chegada (direita)
         doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-        doc.text(horarioChegada || '--:--', pageWidth - margin - 25, boxY + 14, { align: 'right' });
+        doc.text(horarioChegada || '--:--', pageWidth - margin - 15, boxY + 16, { align: 'right' });
         doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
-        doc.text(dataSaida, pageWidth - margin - 25, boxY + 22, { align: 'right' });
+        doc.text(dataSaida, pageWidth - margin - 15, boxY + 24, { align: 'right' });
 
         y += 46;
 
