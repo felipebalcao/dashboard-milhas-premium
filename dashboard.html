@@ -558,7 +558,7 @@ async function gerarPDF(event) {
         y += 20;
 
   // Box do voo - FORMATO LATAM
-        // Box do voo - FORMATO LATAM COM ICONES
+                // Box do voo - FORMATO LATAM COM ICONES
         doc.setFillColor(255, 255, 255); doc.setDrawColor(230, 230, 235);
         doc.roundedRect(margin, y, contentWidth, 50, 3, 3, 'FD');
 
@@ -586,50 +586,58 @@ async function gerarPDF(event) {
         doc.text(dataSaida, pageWidth - margin - 12, boxY + 21, { align: 'right' });
 
         // Linha inferior com icones
-        const infoY = boxY + 32;
-        
-        // Funcao para carregar imagem
-        async function loadImage(url) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => resolve(img);
-                img.onerror = () => resolve(null);
-                img.src = url;
-            });
-        }
+        const infoY = boxY + 35;
+        const iconSize = 5;
 
         // Carregar icones
-        const iconBagMao = await loadImage('https://balcao.com.vc/bagagemmao.png');
-        const iconBagDesp = await loadImage('https://balcao.com.vc/bagagem-de-viagem.png');
-        const iconRelogio = await loadImage('https://balcao.com.vc/relogio.png');
-
-        let iconX = margin + 10;
-        const iconSize = 6;
-
-        // Icone bagagem de mao (sempre tem)
-        if (iconBagMao) {
-            doc.addImage(iconBagMao, 'PNG', iconX, infoY - 4, iconSize, iconSize);
-        }
-        iconX += iconSize + 2;
+        try {
+            const imgBagMao = new Image();
+            imgBagMao.crossOrigin = 'anonymous';
+            await new Promise((resolve, reject) => {
+                imgBagMao.onload = resolve;
+                imgBagMao.onerror = resolve;
+                imgBagMao.src = 'https://balcao.com.vc/bagagemmao.png';
+            });
+            if (imgBagMao.complete && imgBagMao.naturalWidth > 0) {
+                doc.addImage(imgBagMao, 'PNG', margin + 10, infoY - 3, iconSize, iconSize);
+            }
+        } catch(e) {}
+        
         doc.setFontSize(7); doc.setTextColor(...grayText);
-        doc.text('1x Mao', iconX, infoY);
-        iconX += 18;
+        doc.text('1x Mao', margin + 17, infoY);
 
-        // Icone bagagem despachada (se tiver)
-        if (bagagem && iconBagDesp) {
-            doc.addImage(iconBagDesp, 'PNG', iconX, infoY - 4, iconSize, iconSize);
-            iconX += iconSize + 2;
-            doc.text('1x Desp.', iconX, infoY);
-            iconX += 20;
+        // Bagagem despachada (se tiver)
+        if (bagagem) {
+            try {
+                const imgBagDesp = new Image();
+                imgBagDesp.crossOrigin = 'anonymous';
+                await new Promise((resolve, reject) => {
+                    imgBagDesp.onload = resolve;
+                    imgBagDesp.onerror = resolve;
+                    imgBagDesp.src = 'https://balcao.com.vc/bagagem-de-viagem.png';
+                });
+                if (imgBagDesp.complete && imgBagDesp.naturalWidth > 0) {
+                    doc.addImage(imgBagDesp, 'PNG', margin + 35, infoY - 3, iconSize, iconSize);
+                }
+            } catch(e) {}
+            doc.text('1x Desp.', margin + 42, infoY);
         }
 
         // Duracao com icone relogio
         const duracao = Utils.calcularDuracao(horarioSaida, horarioChegada);
-        if (iconRelogio) {
-            doc.addImage(iconRelogio, 'PNG', centerX - 15, infoY - 4, iconSize, iconSize);
-        }
-        doc.text(duracao, centerX - 7, infoY);
+        try {
+            const imgRelogio = new Image();
+            imgRelogio.crossOrigin = 'anonymous';
+            await new Promise((resolve, reject) => {
+                imgRelogio.onload = resolve;
+                imgRelogio.onerror = resolve;
+                imgRelogio.src = 'https://balcao.com.vc/relogio.png';
+            });
+            if (imgRelogio.complete && imgRelogio.naturalWidth > 0) {
+                doc.addImage(imgRelogio, 'PNG', centerX - 12, infoY - 3, iconSize, iconSize);
+            }
+        } catch(e) {}
+        doc.text(duracao, centerX - 5, infoY);
 
         // Tipo de cabine
         const cabineTraduzida = Utils.traduzirCabine(currentOffer.tipo_cabine);
