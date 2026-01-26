@@ -176,6 +176,41 @@
             const dias = ['Domingo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado'];
             return `${dias[dt.getDay()]}, ${dt.toLocaleDateString('pt-BR')}`;
         },
+          traduzirCabine(cabine) {
+            if (!cabine) return '--';
+            const traducoes = {
+                'economy': 'Economica',
+                'economic': 'Economica',
+                'business': 'Executiva',
+                'first': 'Primeira Classe',
+                'first class': 'Primeira Classe',
+                'premium economy': 'Economica Premium',
+                'premium': 'Economica Premium'
+            };
+            return traducoes[cabine.toLowerCase()] || cabine;
+        },
+
+        calcularDuracao(horaSaida, horaChegada) {
+            if (!horaSaida || !horaChegada) return '--';
+            const [hSaida, mSaida] = horaSaida.split(':').map(Number);
+            const [hChegada, mChegada] = horaChegada.split(':').map(Number);
+            
+            let totalMinSaida = hSaida * 60 + mSaida;
+            let totalMinChegada = hChegada * 60 + mChegada;
+            
+            // Se chegada menor que saida, assumir que passou da meia-noite
+            if (totalMinChegada < totalMinSaida) {
+                totalMinChegada += 24 * 60;
+            }
+            
+            const diffMin = totalMinChegada - totalMinSaida;
+            const horas = Math.floor(diffMin / 60);
+            const minutos = diffMin % 60;
+            
+            if (horas === 0) return `${minutos}min`;
+            if (minutos === 0) return `${horas}h`;
+            return `${horas}h ${minutos}min`;
+        },
         formatCurrency(value) {
             if (!value || value === 0) return '--';
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -523,33 +558,58 @@ async function gerarPDF(event) {
         y += 20;
 
   // Box do voo - FORMATO LATAM
+         // Box do voo - FORMATO LATAM COM EXTRAS
         doc.setFillColor(255, 255, 255); doc.setDrawColor(230, 230, 235);
-        doc.roundedRect(margin, y, contentWidth, 38, 3, 3, 'FD');
+        doc.roundedRect(margin, y, contentWidth, 45, 3, 3, 'FD');
 
         const boxY = y;
         
         // Coluna 1 - Horário Saída (esquerda)
         doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-        doc.text(horarioSaida || '--:--', margin + 15, boxY + 16);
+        doc.text(horarioSaida || '--:--', margin + 12, boxY + 14);
         doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
         const dataSaida = currentOffer.data_viagem ? new Date(currentOffer.data_viagem + 'T00:00:00').toLocaleDateString('pt-BR') : '--';
-        doc.text(dataSaida, margin + 15, boxY + 24);
+        doc.text(dataSaida, margin + 12, boxY + 21);
 
         // Centro: Códigos e Voo
         const centerX = pageWidth / 2;
-        doc.setFontSize(16); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-        doc.text(`${currentOffer.origem || '--'}  >  ${currentOffer.destino || '--'}`, centerX, boxY + 16, { align: 'center' });
+        doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text(`${currentOffer.origem || '--'}  >  ${currentOffer.destino || '--'}`, centerX, boxY + 14, { align: 'center' });
         
-        doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
-        doc.text(currentOffer.voo || '--', centerX, boxY + 26, { align: 'center' });
-
-        // Coluna 5 - Horário Chegada (direita)
-        doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-        doc.text(horarioChegada || '--:--', pageWidth - margin - 15, boxY + 16, { align: 'right' });
         doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
-        doc.text(dataSaida, pageWidth - margin - 15, boxY + 24, { align: 'right' });
+        doc.text(currentOffer.voo || '--', centerX, boxY + 22, { align: 'center' });
 
-        y += 46;
+        // Duracao do voo (com icone relogio)
+        const duracao = Utils.calcularDuracao(horarioSaida, horarioChegada);
+        doc.setFontSize(7); doc.setTextColor(...grayText);
+        doc.text(`Duracao: ${duracao}`, centerX, boxY + 29, { align: 'center' });
+
+        // Coluna Direita - Horário Chegada
+        doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text(horarioChegada || '--:--', pageWidth - margin - 12, boxY + 14, { align: 'right' });
+        doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
+        doc.text(dataSaida, pageWidth - margin - 12, boxY + 21, { align: 'right' });
+
+        // Linha inferior com icones
+        const infoY = boxY + 38;
+        doc.setFontSize(7); doc.setTextColor(...grayText);
+        
+        // Bagagem de mao (sempre tem)
+        doc.text('1x Bag. de mao', margin + 12, infoY);
+        
+        // Bagagem despachada (se tiver)
+        if (bagagem) {
+            doc.text('1x Bag. despachada', margin + 45, infoY);
+        }
+        
+        // Tipo de cabine
+        const cabineTraduzida = Utils.traduzirCabine(currentOffer.tipo_cabine);
+        doc.text(cabineTraduzida, centerX, infoY, { align: 'center' });
+        
+        // Voo direto ou conexao
+        doc.text(conexao ? 'Com conexao' : 'Voo direto', pageWidth - margin - 12, infoY, { align: 'right' });
+
+        y += 52;
 
         // PASSAGEIROS
         doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
@@ -715,7 +775,7 @@ async function gerarPDF(event) {
         doc.text(`Por ${Utils.formatCurrency(valorPix)}`, margin + textWidth + 5, y);
         
         y += 10;
-        
+
         doc.setFontSize(8); doc.setTextColor(150, 150, 150);
         doc.text('Este orcamento foi gerado automaticamente pelo Dashboard Premium Milhas', pageWidth / 2, 280, { align: 'center' });
         doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Valido por 7 dias`, pageWidth / 2, 286, { align: 'center' });
