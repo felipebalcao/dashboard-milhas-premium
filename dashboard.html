@@ -122,7 +122,7 @@
                     <div class="form-control"><label class="label"><span class="label-text text-gray-300">Horario Saida *</span></label><input type="time" id="horarioSaida" required class="input input-bordered bg-slate-800 text-white" /></div>
                     <div class="form-control"><label class="label"><span class="label-text text-gray-300">Horario Chegada *</span></label><input type="time" id="horarioChegada" required class="input input-bordered bg-slate-800 text-white" /></div>
                 </div>
-                <div class="form-control mb-4"><label class="label"><span class="label-text text-gray-300">Localizador</span></label><input type="text" id="localizador" class="input input-bordered bg-slate-800 text-white w-40" placeholder="Ex: GBHTNG" oninput="this.value = this.value.toUpperCase()" /></div>
+                <div class="form-control mb-4"><label class="label"><span class="label-text text-gray-300">Valor por Pessoa (R$) *</span></label><input type="number" id="valorPorPessoa" step="0.01" min="0" required class="input input-bordered bg-slate-800 text-white w-48" placeholder="0.00" /></div>
                 <div class="divider"></div>
                 <h3 class="text-lg font-bold text-white mb-3">Dados do Cliente</h3>
                 <div class="form-control mb-3"><label class="label"><span class="label-text text-gray-300">Nome Completo *</span></label><input type="text" id="clienteNome" required class="input input-bordered bg-slate-800 text-white" placeholder="Joao Silva" /></div>
@@ -378,23 +378,25 @@
   let currentOffer = null;
     let passageiroCount = 0;
 
-    function openOrcamentoModal(offer) {
-        currentOffer = offer;
-        const companhia = getCompanhiaByIata(offer.codigo_cia_iata);
-        document.getElementById('modalCompanhia').textContent = companhia ? companhia.nome : (offer.codigo_cia_iata || '--');
-        document.getElementById('modalVoo').textContent = offer.voo || '--';
-        document.getElementById('modalOrigem').textContent = offer.origem || '--';
-        document.getElementById('modalDestino').textContent = offer.destino || '--';
-        document.getElementById('modalDataIda').textContent = offer.data_viagem ? Utils.formatDateFull(offer.data_viagem) : '--';
-        document.getElementById('modalValor').textContent = Utils.formatCurrency(offer.valor);
-        document.getElementById('modalCabine').textContent = offer.tipo_cabine || '--';
-        document.getElementById('modalPrograma').textContent = offer.programa_emissao || '--';
-        document.getElementById('formOrcamento').reset();
-        document.getElementById('passageirosContainer').innerHTML = '';
-        passageiroCount = 0;
-        addPassageiro();
-        document.getElementById('modalOrcamento').classList.add('active');
-    }
+ function openOrcamentoModal(offer) {
+    currentOffer = offer;
+    const companhia = getCompanhiaByIata(offer.codigo_cia_iata);
+    document.getElementById('modalCompanhia').textContent = companhia ? companhia.nome : (offer.codigo_cia_iata || '--');
+    document.getElementById('modalVoo').textContent = offer.voo || '--';
+    document.getElementById('modalOrigem').textContent = offer.origem || '--';
+    document.getElementById('modalDestino').textContent = offer.destino || '--';
+    document.getElementById('modalDataIda').textContent = offer.data_viagem ? Utils.formatDateFull(offer.data_viagem) : '--';
+    document.getElementById('modalValor').textContent = Utils.formatCurrency(offer.valor);
+    document.getElementById('modalCabine').textContent = offer.tipo_cabine || '--';
+    document.getElementById('modalPrograma').textContent = offer.programa_emissao || '--';
+    document.getElementById('formOrcamento').reset();
+    document.getElementById('passageirosContainer').innerHTML = '';
+    passageiroCount = 0;
+    addPassageiro();
+    // Preencher valor por pessoa com o valor da oferta
+    document.getElementById('valorPorPessoa').value = offer.valor || 0;
+    document.getElementById('modalOrcamento').classList.add('active');
+}
 
     function closeOrcamentoModal() {
         document.getElementById('modalOrcamento').classList.remove('active');
@@ -423,213 +425,249 @@
         return passageiros;
     }
 
-    async function gerarPDF(event) {
-        event.preventDefault();
-        const passageiros = getPassageiros();
-        if (passageiros.length === 0) { Utils.showToast('Adicione pelo menos um passageiro!', 'error'); return; }
+async function gerarPDF(event) {
+    event.preventDefault();
+    const passageiros = getPassageiros();
+    if (passageiros.length === 0) { Utils.showToast('Adicione pelo menos um passageiro!', 'error'); return; }
 
-        const horarioSaida = document.getElementById('horarioSaida').value;
-        const horarioChegada = document.getElementById('horarioChegada').value;
-        const localizador = document.getElementById('localizador').value.trim();
-        const clienteNome = document.getElementById('clienteNome').value.trim();
-        const clienteTelefone = document.getElementById('clienteTelefone').value.trim();
-        const clienteEmail = document.getElementById('clienteEmail').value.trim();
-        const clienteEndereco = document.getElementById('clienteEndereco').value.trim();
-        const bagagem = document.getElementById('bagagemDespachada').checked;
-        const conexao = document.getElementById('temConexao').checked;
-        const companhia = getCompanhiaByIata(currentOffer.codigo_cia_iata);
+    const horarioSaida = document.getElementById('horarioSaida').value;
+    const horarioChegada = document.getElementById('horarioChegada').value;
+    const localizador = document.getElementById('localizador').value.trim();
+    const clienteNome = document.getElementById('clienteNome').value.trim();
+    const clienteTelefone = document.getElementById('clienteTelefone').value.trim();
+    const clienteEmail = document.getElementById('clienteEmail').value.trim();
+    const clienteEndereco = document.getElementById('clienteEndereco').value.trim();
+    const bagagem = document.getElementById('bagagemDespachada').checked;
+    const conexao = document.getElementById('temConexao').checked;
+    const companhia = getCompanhiaByIata(currentOffer.codigo_cia_iata);
+    
+    // Valor editavel por pessoa
+    const valorPorPessoa = parseFloat(document.getElementById('valorPorPessoa').value) || 0;
+    const valorTotal = valorPorPessoa * passageiros.length;
 
-        try {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            const { data: orcamento, error } = await supabaseClient.from('orcamentos').insert({
-                origem: currentOffer.origem, destino: currentOffer.destino, data_viagem: currentOffer.data_viagem,
-                valor: currentOffer.valor, tipo_cabine: currentOffer.tipo_cabine, rota: currentOffer.rota,
-                programa_emissao: currentOffer.programa_emissao, voo: currentOffer.voo, codigo_cia_iata: currentOffer.codigo_cia_iata,
-                horario_saida: horarioSaida, horario_chegada: horarioChegada, localizador: localizador,
-                cliente_nome: clienteNome, cliente_telefone: clienteTelefone, cliente_email: clienteEmail,
-                cliente_endereco: clienteEndereco, bagagem_despachada: bagagem, tem_conexao: conexao,
-                passageiros: passageiros, user_id: session.user.id
-            }).select().single();
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        const { data: orcamento, error } = await supabaseClient.from('orcamentos').insert({
+            origem: currentOffer.origem, destino: currentOffer.destino, data_viagem: currentOffer.data_viagem,
+            valor: valorTotal, tipo_cabine: currentOffer.tipo_cabine, rota: currentOffer.rota,
+            programa_emissao: currentOffer.programa_emissao, voo: currentOffer.voo, codigo_cia_iata: currentOffer.codigo_cia_iata,
+            horario_saida: horarioSaida, horario_chegada: horarioChegada, localizador: localizador,
+            cliente_nome: clienteNome, cliente_telefone: clienteTelefone, cliente_email: clienteEmail,
+            cliente_endereco: clienteEndereco, bagagem_despachada: bagagem, tem_conexao: conexao,
+            passageiros: passageiros, user_id: session.user.id
+        }).select().single();
 
-            if (error) { console.error('Erro Supabase:', error); throw error; }
+        if (error) { console.error('Erro Supabase:', error); throw error; }
 
-            // ========== PDF MODELO LATAM ==========
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const margin = 15;
-            const pageWidth = 210;
-            const contentWidth = pageWidth - (margin * 2);
-            let y = margin;
+        // ========== PDF MODELO LATAM - CORRIGIDO ==========
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const margin = 15;
+        const pageWidth = 210;
+        const contentWidth = pageWidth - (margin * 2);
+        let y = margin;
 
-            const primaryColor = [30, 41, 82];
-            const grayText = [100, 100, 100];
-            const lightGray = [245, 245, 250];
-            const accentColor = [102, 126, 234];
+        const primaryColor = [30, 41, 82];
+        const grayText = [100, 100, 100];
+        const lightGray = [245, 245, 250];
+        const accentColor = [102, 126, 234];
 
-            // CABECALHO - Logo
-            if (companhia && companhia.logo_url) {
-                try {
-                    const img = new Image();
-                    img.crossOrigin = 'anonymous';
-                    await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = companhia.logo_url; });
-                    doc.addImage(img, 'PNG', margin, y, 45, 22);
-                } catch (e) {
-                    doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-                    doc.text(companhia?.nome || 'Companhia Aerea', margin, y + 15);
-                }
-            } else {
+        // CABECALHO - Logo
+        if (companhia && companhia.logo_url) {
+            try {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = companhia.logo_url; });
+                doc.addImage(img, 'PNG', margin, y, 45, 22);
+            } catch (e) {
                 doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
                 doc.text(companhia?.nome || 'Companhia Aerea', margin, y + 15);
             }
+        } else {
+            doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+            doc.text(companhia?.nome || 'Companhia Aerea', margin, y + 15);
+        }
 
-            // Numero da compra e Localizador
-            doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
-            doc.text('Numero da compra', 115, y + 5);
-            doc.text('Localizador', 165, y + 5);
+        // Numero da compra e Localizador
+        doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
+        doc.text('Numero da compra', 115, y + 5);
+        doc.text('Localizador', 165, y + 5);
 
-            doc.setFillColor(...lightGray);
-            doc.roundedRect(115, y + 8, 35, 12, 2, 2, 'F');
-            doc.roundedRect(160, y + 8, 35, 12, 2, 2, 'F');
+        doc.setFillColor(...lightGray);
+        doc.roundedRect(115, y + 8, 35, 12, 2, 2, 'F');
+        doc.roundedRect(160, y + 8, 35, 12, 2, 2, 'F');
 
-            doc.setFontSize(10); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-            doc.text(`${orcamento.numero_orcamento}`, 132.5, y + 16, { align: 'center' });
-            doc.text(localizador || 'N/A', 177.5, y + 16, { align: 'center' });
+        doc.setFontSize(10); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text(`${orcamento.numero_orcamento}`, 132.5, y + 16, { align: 'center' });
+        doc.text(localizador || 'N/A', 177.5, y + 16, { align: 'center' });
 
-            y = 50;
+        y = 50;
 
-            // INFORMACOES DO VOO
-            doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-            doc.text('Informacoes do voo', margin, y);
+        // INFORMACOES DO VOO
+        doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text('Informacoes do voo', margin, y);
+        y += 8;
+
+        // Barra azul - Itinerario
+        doc.setFillColor(...primaryColor);
+        doc.roundedRect(margin, y, contentWidth, 12, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255); doc.setFontSize(10);
+        doc.text('Itinerario de IDA', margin + 5, y + 8);
+
+        const dataViagemFormatada = currentOffer.data_viagem
+            ? new Date(currentOffer.data_viagem + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
+            : '--';
+        doc.text(dataViagemFormatada.charAt(0).toUpperCase() + dataViagemFormatada.slice(1), 90, y + 8);
+        doc.text('1 Trecho', 175, y + 8);
+        y += 20;
+
+        // Box do voo - ALTURA AUMENTADA
+        doc.setFillColor(255, 255, 255); doc.setDrawColor(230, 230, 235);
+        doc.roundedRect(margin, y, contentWidth, 50, 3, 3, 'FD');
+
+        // Coluna ESQUERDA - Saida
+        const colLeft = margin + 8;
+        doc.setFontSize(20); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text(horarioSaida || '--:--', colLeft, y + 15);
+        
+        doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
+        const dataSaida = currentOffer.data_viagem ? new Date(currentOffer.data_viagem + 'T00:00:00').toLocaleDateString('pt-BR') : '--';
+        doc.text(dataSaida, colLeft, y + 22);
+        
+        // Nome aeroporto origem (com quebra se necessario)
+        doc.setFontSize(7);
+        const aerOrigem = currentOffer.origem || '--';
+        doc.text(`Aer. ${aerOrigem}`, colLeft, y + 30);
+        doc.text(currentOffer.origem_cidade || '', colLeft, y + 35);
+
+        // Coluna CENTRO - Rota
+        const centerX = pageWidth / 2;
+        doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text(currentOffer.origem || '--', centerX - 20, y + 20, { align: 'center' });
+        doc.setFontSize(10);
+        doc.text('------>', centerX, y + 20, { align: 'center' });
+        doc.setFontSize(14);
+        doc.text(currentOffer.destino || '--', centerX + 20, y + 20, { align: 'center' });
+        
+        // Numero do voo
+        doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
+        doc.text(currentOffer.voo || '--', centerX, y + 30, { align: 'center' });
+
+        // Coluna DIREITA - Chegada
+        const colRight = pageWidth - margin - 45;
+        doc.setFontSize(20); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text(horarioChegada || '--:--', colRight, y + 15);
+        
+        doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
+        doc.text(dataSaida, colRight, y + 22);
+        
+        // Nome aeroporto destino
+        doc.setFontSize(7);
+        const aerDestino = currentOffer.destino || '--';
+        doc.text(`Aer. ${aerDestino}`, colRight, y + 30);
+        doc.text(currentOffer.destino_cidade || '', colRight, y + 35);
+
+        y += 58;
+
+        // PASSAGEIROS
+        doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text(`Passageiros: ${passageiros.length}`, margin, y);
+        y += 10;
+
+        passageiros.forEach((p, i) => {
+            if (y > 230) { doc.addPage(); y = margin; }
+
+            doc.setFontSize(11); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+            doc.text(p.nome.toUpperCase(), margin, y);
+            doc.setFontSize(9); doc.setTextColor(...accentColor);
+            doc.text(`E-ticket: ${p.documento || '0000000000000'}`, pageWidth - margin, y, { align: 'right' });
             y += 8;
 
-            // Barra azul - Itinerario
-            doc.setFillColor(...primaryColor);
-            doc.roundedRect(margin, y, contentWidth, 12, 2, 2, 'F');
-            doc.setTextColor(255, 255, 255); doc.setFontSize(10);
-            doc.text('Itinerario de IDA', margin + 5, y + 8);
+            doc.setFillColor(...lightGray);
+            doc.roundedRect(margin, y, contentWidth, 28, 2, 2, 'F');
 
-            const dataViagemFormatada = currentOffer.data_viagem
-                ? new Date(currentOffer.data_viagem + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
-                : '--';
-            doc.text(dataViagemFormatada.charAt(0).toUpperCase() + dataViagemFormatada.slice(1), 95, y + 8);
-            doc.text('1 Trecho', 175, y + 8);
-            y += 20;
+            doc.setFontSize(8); doc.setTextColor(...grayText);
+            doc.text('Ida', margin + 5, y + 8);
+            doc.setFontSize(9);
+            doc.text('Assentos', margin + 20, y + 8);
+            doc.setTextColor(...primaryColor);
+            doc.text('Nenhum assento definido.', margin + 20, y + 16);
 
-            // Box do voo
-            doc.setFillColor(255, 255, 255); doc.setDrawColor(230, 230, 235);
-            doc.roundedRect(margin, y, contentWidth, 40, 3, 3, 'FD');
-
-            // Horario saida
-            doc.setFontSize(28); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-            doc.text(horarioSaida || '--:--', margin + 10, y + 18);
-            doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
-            const dataSaida = currentOffer.data_viagem ? new Date(currentOffer.data_viagem + 'T00:00:00').toLocaleDateString('pt-BR') : '--';
-            doc.text(dataSaida, margin + 10, y + 26);
-            doc.setFontSize(8);
-            doc.text(`Aer. ${currentOffer.origem || '--'}`, margin + 10, y + 34);
-
-            // Centro - Rota
-            const centerX = pageWidth / 2;
-            doc.setFontSize(16); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-            doc.text(currentOffer.origem || '--', centerX - 25, y + 18, { align: 'center' });
-            doc.setFontSize(12);
-            doc.text('----->', centerX, y + 18, { align: 'center' });
-            doc.setFontSize(16);
-            doc.text(currentOffer.destino || '--', centerX + 25, y + 18, { align: 'center' });
-            doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
-            doc.text(currentOffer.voo || '--', centerX, y + 28, { align: 'center' });
-
-            // Horario chegada
-            doc.setFontSize(28); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-            doc.text(horarioChegada || '--:--', pageWidth - margin - 45, y + 18);
-            doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
-            doc.text(dataSaida, pageWidth - margin - 45, y + 26);
-            doc.setFontSize(8);
-            doc.text(`Aer. ${currentOffer.destino || '--'}`, pageWidth - margin - 45, y + 34);
-            y += 50;
-
-            // PASSAGEIROS
-            doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-            doc.text(`Passageiros: ${passageiros.length}`, margin, y);
-            y += 10;
-
-            passageiros.forEach((p, i) => {
-                if (y > 240) { doc.addPage(); y = margin; }
-
-                doc.setFontSize(11); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-                doc.text(p.nome.toUpperCase(), margin, y);
-                doc.setFontSize(9); doc.setTextColor(...accentColor);
-                doc.text(`E-ticket: ${p.documento || '0000000000000'}`, pageWidth - margin, y, { align: 'right' });
-                y += 8;
-
-                doc.setFillColor(...lightGray);
-                doc.roundedRect(margin, y, contentWidth, 28, 2, 2, 'F');
-
-                doc.setFontSize(8); doc.setTextColor(...grayText);
-                doc.text('Ida', margin + 5, y + 8);
-                doc.setFontSize(9);
-                doc.text('Assentos', margin + 20, y + 8);
-                doc.setTextColor(...primaryColor);
-                doc.text('Nenhum assento definido.', margin + 20, y + 16);
-
-                doc.setTextColor(...grayText); doc.setFontSize(8);
-                doc.text('Bagagens*', margin + 100, y + 8);
-                doc.setFontSize(9); doc.setTextColor(...primaryColor);
-                doc.text('Mao: 1', margin + 100, y + 18);
-                doc.setFontSize(7); doc.setTextColor(...grayText);
-                doc.text('10kg', margin + 100, y + 24);
-                doc.setFontSize(9); doc.setTextColor(...primaryColor);
-                doc.text('Desp: ' + (bagagem ? '1' : '0'), margin + 125, y + 18);
-                doc.setFontSize(7); doc.setTextColor(...grayText);
-                doc.text('23kg', margin + 125, y + 24);
-                y += 35;
-            });
-
+            doc.setTextColor(...grayText); doc.setFontSize(8);
+            doc.text('Bagagens*', margin + 100, y + 8);
+            doc.setFontSize(9); doc.setTextColor(...primaryColor);
+            doc.text('Mao: 1', margin + 100, y + 18);
             doc.setFontSize(7); doc.setTextColor(...grayText);
-            doc.text('*Alem da bagagem especificada, cada passageiro pode levar uma bolsa, mochila ou sacola (item pessoal).', margin, y);
-            y += 15;
+            doc.text('10kg', margin + 100, y + 24);
+            doc.setFontSize(9); doc.setTextColor(...primaryColor);
+            doc.text('Desp: ' + (bagagem ? '1' : '0'), margin + 125, y + 18);
+            doc.setFontSize(7); doc.setTextColor(...grayText);
+            doc.text('23kg', margin + 125, y + 24);
+            y += 35;
+        });
 
-            // DADOS DO CLIENTE
-            if (y > 220) { doc.addPage(); y = margin; }
-            doc.setDrawColor(230, 230, 235);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 10;
+        doc.setFontSize(7); doc.setTextColor(...grayText);
+        doc.text('*Alem da bagagem especificada, cada passageiro pode levar uma bolsa, mochila ou sacola (item pessoal).', margin, y);
+        y += 15;
 
-            doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-            doc.text('Dados do Cliente', margin, y);
-            y += 10;
+        // DADOS DO CLIENTE
+        if (y > 200) { doc.addPage(); y = margin; }
+        doc.setDrawColor(230, 230, 235);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 10;
 
-            doc.setFontSize(10); doc.setFont(undefined, 'normal'); doc.setTextColor(60, 60, 60);
-            doc.text(`Nome: ${clienteNome}`, margin, y); y += 7;
-            doc.text(`Telefone: ${clienteTelefone}`, margin, y); y += 7;
-            doc.text(`Email: ${clienteEmail}`, margin, y); y += 7;
-            if (clienteEndereco) { doc.text(`Endereco: ${clienteEndereco}`, margin, y); y += 7; }
-            y += 10;
+        doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text('Dados do Cliente', margin, y);
+        y += 10;
 
-            // VALOR TOTAL
-            doc.setFillColor(...accentColor);
-            doc.roundedRect(margin, y, contentWidth, 22, 3, 3, 'F');
-            doc.setTextColor(255, 255, 255); doc.setFontSize(12); doc.setFont(undefined, 'bold');
-            doc.text('VALOR TOTAL:', margin + 10, y + 14);
-            doc.setFontSize(18);
-            doc.text(Utils.formatCurrency(currentOffer.valor), pageWidth - margin - 10, y + 14, { align: 'right' });
+        doc.setFontSize(10); doc.setFont(undefined, 'normal'); doc.setTextColor(60, 60, 60);
+        doc.text(`Nome: ${clienteNome}`, margin, y); y += 7;
+        doc.text(`Telefone: ${clienteTelefone}`, margin, y); y += 7;
+        doc.text(`Email: ${clienteEmail}`, margin, y); y += 7;
+        if (clienteEndereco) { doc.text(`Endereco: ${clienteEndereco}`, margin, y); y += 7; }
+        y += 10;
 
-            // RODAPE
-            doc.setFontSize(8); doc.setTextColor(150, 150, 150);
-            doc.text('Este orcamento foi gerado automaticamente pelo Dashboard Premium Milhas', pageWidth / 2, 280, { align: 'center' });
-            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Valido por 7 dias`, pageWidth / 2, 286, { align: 'center' });
+        // VALORES - Por pessoa e Total
+        doc.setDrawColor(230, 230, 235);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 10;
 
-            const fileName = `Orcamento_${orcamento.numero_orcamento}_${currentOffer.origem}_${currentOffer.destino}.pdf`;
-            doc.save(fileName);
+        doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text('Valores', margin, y);
+        y += 10;
 
-            Utils.showToast('Orcamento gerado com sucesso!', 'success');
-            closeOrcamentoModal();
+        doc.setFontSize(10); doc.setFont(undefined, 'normal'); doc.setTextColor(60, 60, 60);
+        doc.text(`Valor por pessoa:`, margin, y);
+        doc.text(Utils.formatCurrency(valorPorPessoa), margin + 80, y);
+        y += 7;
+        doc.text(`Quantidade de passageiros:`, margin, y);
+        doc.text(`${passageiros.length}`, margin + 80, y);
+        y += 12;
 
-        } catch (error) {
-            console.error('Erro ao gerar orcamento:', error);
-            Utils.showToast('Erro: ' + error.message, 'error');
-        }
+        // Box VALOR TOTAL
+        doc.setFillColor(...accentColor);
+        doc.roundedRect(margin, y, contentWidth, 22, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255); doc.setFontSize(12); doc.setFont(undefined, 'bold');
+        doc.text('VALOR TOTAL:', margin + 10, y + 14);
+        doc.setFontSize(18);
+        doc.text(Utils.formatCurrency(valorTotal), pageWidth - margin - 10, y + 14, { align: 'right' });
+
+        // RODAPE
+        doc.setFontSize(8); doc.setTextColor(150, 150, 150);
+        doc.text('Este orcamento foi gerado automaticamente pelo Dashboard Premium Milhas', pageWidth / 2, 280, { align: 'center' });
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Valido por 7 dias`, pageWidth / 2, 286, { align: 'center' });
+
+        const fileName = `Orcamento_${orcamento.numero_orcamento}_${currentOffer.origem}_${currentOffer.destino}.pdf`;
+        doc.save(fileName);
+
+        Utils.showToast('Orcamento gerado com sucesso!', 'success');
+        closeOrcamentoModal();
+
+    } catch (error) {
+        console.error('Erro ao gerar orcamento:', error);
+        Utils.showToast('Erro: ' + error.message, 'error');
     }
+}
 
     document.addEventListener('click', (e) => { if (e.target.id === 'modalOrcamento') closeOrcamentoModal(); });
 
