@@ -562,7 +562,7 @@ async function gerarPDF(event) {
             doc.setFontSize(11); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
             doc.text(p.nome.toUpperCase(), margin, y);
             doc.setFontSize(9); doc.setTextColor(...accentColor);
-            doc.text(`E-ticket: ${p.documento || '0000000000000'}`, pageWidth - margin, y, { align: 'right' });
+            doc.text(`Documento: ${p.documento || '--'}`, pageWidth - margin, y, { align: 'right' });
             y += 8;
 
             doc.setFillColor(...lightGray);
@@ -635,31 +635,28 @@ async function gerarPDF(event) {
         doc.text(Utils.formatCurrency(valorTotal), pageWidth - margin - 10, y + 14, { align: 'right' });
 
         // RODAPE
-        // ========== SIMULACAO DE PAGAMENTO ==========
-        if (y > 160) { doc.addPage(); y = margin; }
+       // ========== SIMULACAO DE PAGAMENTO ==========
+        if (y > 180) { doc.addPage(); y = margin; }
         
         doc.setDrawColor(230, 230, 235);
         doc.line(margin, y, pageWidth - margin, y);
-        y += 10;
-
-        doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-        doc.text('Simulacao de pagamento', pageWidth / 2, y, { align: 'center' });
-        y += 12;
-
-        // CARTAO
-        doc.setFontSize(11); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-        doc.text('Cartao de Credito', margin, y);
         y += 8;
 
-        doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(60, 60, 60);
+        doc.setFontSize(12); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text('Simulacao de pagamento', pageWidth / 2, y, { align: 'center' });
+        y += 10;
+
+        // CARTAO
+        doc.setFontSize(10); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text('Cartao de Credito', margin, y);
+        y += 6;
+
+        doc.setFontSize(7); doc.setFont(undefined, 'normal'); doc.setTextColor(60, 60, 60);
         
         // Calcular parcelas
         const parcelas = [];
         for (let i = 1; i <= 12; i++) {
-            parcelas.push({
-                num: i,
-                valorParcela: valorTotal / i
-            });
+            parcelas.push({ num: i, valorParcela: valorTotal / i });
         }
 
         // Coluna esquerda (1x a 6x)
@@ -669,11 +666,11 @@ async function gerarPDF(event) {
             doc.setFont(undefined, 'bold');
             doc.text(`${p.num}x`, margin, parcelaY);
             doc.setFont(undefined, 'normal');
-            doc.text(`de ${Utils.formatCurrency(p.valorParcela)} (Sem Acrescimo)`, margin + 8, parcelaY);
+            doc.text(`de ${Utils.formatCurrency(p.valorParcela)} (Sem Acrescimo)`, margin + 6, parcelaY);
             doc.setTextColor(...accentColor);
-            doc.text(`Total: ${Utils.formatCurrency(valorTotal)}`, margin + 75, parcelaY);
+            doc.text(`Total: ${Utils.formatCurrency(valorTotal)}`, margin + 58, parcelaY);
             doc.setTextColor(60, 60, 60);
-            parcelaY += 6;
+            parcelaY += 5;
         }
 
         // Coluna direita (7x a 12x)
@@ -685,35 +682,39 @@ async function gerarPDF(event) {
             doc.setFont(undefined, 'normal');
             doc.text(`de ${Utils.formatCurrency(p.valorParcela)} (Sem Acrescimo)`, margin + 103, parcelaY);
             doc.setTextColor(...accentColor);
-            doc.text(`Total: ${Utils.formatCurrency(valorTotal)}`, margin + 165, parcelaY);
+            doc.text(`Total: ${Utils.formatCurrency(valorTotal)}`, margin + 155, parcelaY);
             doc.setTextColor(60, 60, 60);
-            parcelaY += 6;
+            parcelaY += 5;
         }
 
-        y = parcelaY + 5;
+        y = parcelaY + 3;
 
         // Observacao cartao
-        doc.setFontSize(6); doc.setTextColor(...grayText);
+        doc.setFontSize(5); doc.setTextColor(...grayText);
         doc.text('* Simulacao de parcelamento usando bandeiras Mastercard e Visa, demais bandeiras consultar.', margin, y);
-        y += 10;
+        y += 8;
 
         // PIX
-        doc.setFontSize(11); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-        doc.text('Pix', margin, y);
-        y += 8;
+        doc.setFontSize(10); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
+        doc.text('Pix (7% de desconto)', margin, y);
+        y += 6;
 
-        const valorPix = valorTotal * 0.93; // 7% desconto
-        doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(60, 60, 60);
-        doc.text(`Valor a vista: ${Utils.formatCurrency(valorTotal)}`, margin, y);
+        const valorPix = valorTotal * 0.93;
         
-        doc.setFontSize(7); doc.setTextColor(...grayText);
-        doc.text('com 7% de desconto', margin + 50, y);
-        y += 8;
-
-        doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.setTextColor(34, 139, 34); // Verde
-        doc.text(`${Utils.formatCurrency(valorPix)}`, margin, y);
+        // Valor original riscado
+        doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(150, 150, 150);
+        const valorOriginalText = `De ${Utils.formatCurrency(valorTotal)}`;
+        doc.text(valorOriginalText, margin, y);
+        // Linha riscando o valor
+        const textWidth = doc.getTextWidth(valorOriginalText);
+        doc.setDrawColor(150, 150, 150);
+        doc.line(margin, y - 1.5, margin + textWidth, y - 1.5);
         
-        y += 15;
+        // Valor com desconto em destaque
+        doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.setTextColor(34, 139, 34);
+        doc.text(`Por ${Utils.formatCurrency(valorPix)}`, margin + textWidth + 5, y);
+        
+        y += 10;
         
         doc.setFontSize(8); doc.setTextColor(150, 150, 150);
         doc.text('Este orcamento foi gerado automaticamente pelo Dashboard Premium Milhas', pageWidth / 2, 280, { align: 'center' });
