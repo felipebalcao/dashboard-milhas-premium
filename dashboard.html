@@ -710,6 +710,8 @@ async function gerarPDF(event) {
         doc.setFontSize(18);
         doc.text(Utils.formatCurrency(valorTotal), pageWidth - margin - 10, y + 14, { align: 'right' });
 
+         y += 30;
+         
         // RODAPE
        // ========== SIMULACAO DE PAGAMENTO ==========
         if (y > 180) { doc.addPage(); y = margin; }
