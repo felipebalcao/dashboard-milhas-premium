@@ -564,9 +564,9 @@ async function gerarPDF(event) {
 
         const boxY = y;
         
-        // Coluna 1 - Horário Saída (esquerda)
+       // Coluna 1 - Horário Saída (esquerda)
         doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-        doc.text(horarioSaida || '--:--', margin + 12, boxY + 14);
+        doc.text(horarioSaida || '--:--', margin + 5, boxY + 14);
         doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
         const dataSaida = currentOffer.data_viagem ? new Date(currentOffer.data_viagem + 'T00:00:00').toLocaleDateString('pt-BR') : '--';
         doc.text(dataSaida, margin + 12, boxY + 21);
@@ -579,20 +579,22 @@ async function gerarPDF(event) {
         doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
         doc.text(currentOffer.voo || '--', centerX, boxY + 22, { align: 'center' });
 
-        // Coluna Direita - Horário Chegada
+         // Coluna Direita - Horário Chegada
         doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-        doc.text(horarioChegada || '--:--', pageWidth - margin - 12, boxY + 14, { align: 'right' });
+        doc.text(horarioChegada || '--:--', pageWidth - margin - 5, boxY + 14, { align: 'right' });
         doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
-        doc.text(dataSaida, pageWidth - margin - 12, boxY + 21, { align: 'right' });
+        doc.text(dataSaida, pageWidth - margin - 5, boxY + 21, { align: 'right' });
 
      // Linha inferior com icones (carregando do Supabase)
-        const infoY = boxY + 35;
-        const iconSize = 5;
+        const infoY = boxY + 38;
+        const iconSize = 6;
 
         // URLs dos icones no Supabase
         const urlBagagemMao = 'https://eeyobwuzbloopynmflva.supabase.co/storage/v1/object/public/companhias-logos/bagagemmao.png';
         const urlBagagemDesp = 'https://eeyobwuzbloopynmflva.supabase.co/storage/v1/object/public/companhias-logos/bagagem-de-viagem.png';
         const urlRelogio = 'https://eeyobwuzbloopynmflva.supabase.co/storage/v1/object/public/companhias-logos/relogio.png';
+        const urlPoltrona = 'https://eeyobwuzbloopynmflva.supabase.co/storage/v1/object/public/companhias-logos/poltrona.jpg';
+        const urlVoo = 'https://eeyobwuzbloopynmflva.supabase.co/storage/v1/object/public/companhias-logos/voo.png';
 
         // Funcao para carregar imagem
         const carregarIcone = (url) => {
@@ -605,45 +607,53 @@ async function gerarPDF(event) {
             });
         };
 
-        // Carregar e desenhar icones
-        const [imgMao, imgDesp, imgRelogio] = await Promise.all([
+        // Carregar todos os icones
+        const [imgMao, imgDesp, imgRelogio, imgPoltrona, imgVoo] = await Promise.all([
             carregarIcone(urlBagagemMao),
             carregarIcone(urlBagagemDesp),
-            carregarIcone(urlRelogio)
+            carregarIcone(urlRelogio),
+            carregarIcone(urlPoltrona),
+            carregarIcone(urlVoo)
         ]);
 
         // Bagagem de mao
         if (imgMao) {
-            doc.addImage(imgMao, 'PNG', margin + 8, infoY - 3, iconSize, iconSize);
+            doc.addImage(imgMao, 'PNG', margin + 5, infoY - 4, iconSize, iconSize);
         }
         doc.setFontSize(7); doc.setTextColor(...grayText);
-        doc.text('1x Mao', margin + 15, infoY);
+        doc.text('1x Mao', margin + 12, infoY);
 
         // Bagagem despachada (se tiver)
         if (bagagem) {
             if (imgDesp) {
-                doc.addImage(imgDesp, 'PNG', margin + 33, infoY - 3, iconSize, iconSize);
+                doc.addImage(imgDesp, 'PNG', margin + 28, infoY - 4, iconSize, iconSize);
             }
-            doc.text('1x Desp.', margin + 40, infoY);
+            doc.text('1x Desp.', margin + 35, infoY);
         }
 
-        // Duracao com relogio
+        // Duracao com relogio (centro)
         const duracao = Utils.calcularDuracao(horarioSaida, horarioChegada);
         if (imgRelogio) {
-            doc.addImage(imgRelogio, 'PNG', centerX - 14, infoY - 3, iconSize, iconSize);
+            doc.addImage(imgRelogio, 'PNG', centerX - 12, infoY - 4, iconSize, iconSize);
         }
-        doc.text(duracao, centerX - 7, infoY);
+        doc.text(duracao, centerX - 4, infoY);
 
-        // Tipo de cabine
+        // Tipo de cabine/poltrona
         const cabineTraduzida = Utils.traduzirCabine(currentOffer.tipo_cabine);
+        if (imgPoltrona) {
+            doc.addImage(imgPoltrona, 'JPEG', pageWidth - margin - 55, infoY - 4, iconSize, iconSize);
+        }
         doc.setFontSize(7); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
-        doc.text(cabineTraduzida, pageWidth - margin - 35, infoY);
-        
-        // Voo direto ou conexao
-        doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
-        doc.text(conexao ? 'Conexao' : 'Direto', pageWidth - margin - 10, infoY, { align: 'right' });
+        doc.text(cabineTraduzida, pageWidth - margin - 48, infoY);
 
-        y += 58;
+        // Tipo de voo (direto ou conexao)
+        if (imgVoo) {
+            doc.addImage(imgVoo, 'PNG', pageWidth - margin - 25, infoY - 4, iconSize, iconSize);
+        }
+        doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
+        doc.text(conexao ? 'Conexao' : 'Direto', pageWidth - margin - 18, infoY);
+
+               y += 58;
 
         // PASSAGEIROS
         doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...primaryColor);
