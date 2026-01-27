@@ -589,59 +589,22 @@ async function gerarPDF(event) {
         const infoY = boxY + 35;
         const iconSize = 5;
 
-        // Icones em Base64 (SVG)
-        // Icone bagagem de mao (mala pequena)
-        const iconBagagemMao = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzY2NjY2NiI+PHBhdGggZD0iTTE4IDZoLTJWNGMwLTEuMS0uOS0yLTItMkg4Yy0xLjEgMC0yIC45LTIgMnYySDRjLTEuMSAwLTIgLjktMiAydjExYzAgMS4xLjkgMiAyIDJoMTRjMS4xIDAgMi0uOSAyLTJWOGMwLTEuMS0uOS0yLTItMnpNOCA0aDh2Mkg4VjR6bTEwIDE1SDZWOGgxMnYxMXoiLz48cGF0aCBkPSJNMTIgMTBjLTEuMSAwLTIgLjktMiAydjJjMCAxLjEuOSAyIDIgMnMyLS45IDItMnYtMmMwLTEuMS0uOS0yLTItMnoiLz48L3N2Zz4=';
-
-        // Icone bagagem despachada (mala grande)
-        const iconBagagemDesp = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzY2NjY2NiI+PHBhdGggZD0iTTE3LjUgNkg2LjVDNS42NyA2IDUgNi42NyA1IDcuNXYxMWMwIC44My42NyAxLjUgMS41IDEuNWgxMWMuODMgMCAxLjUtLjY3IDEuNS0xLjV2LTExYzAtLjgzLS42Ny0xLjUtMS41LTEuNXpNOSA0aDZjLjU1IDAgMSAuNDUgMSAxdjFIOFY1YzAtLjU1LjQ1LTEgMS0xem04LjUgMTVoLTExVjcuNWgxMXYxMS41ek04IDIxaDEuNXYxLjVIOFYyMXptNi41IDBoMS41djEuNWgtMS41VjIxeiIvPjxyZWN0IHg9IjkiIHk9IjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjIiLz48cmVjdCB4PSI5IiB5PSIxMiIgd2lkdGg9IjYiIGhlaWdodD0iMiIvPjwvc3ZnPg==';
-
-        // Icone relogio (duracao)
-        const iconRelogio = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzY2NjY2NiI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDIgMC04LTMuNTgtOC04czMuNTgtOCA4LTggOCAzLjU4IDggOC0zLjU4IDgtOCA4eiIvPjxwYXRoIGQ9Ik0xMi41IDdhLjUuNSAwIDAgMC0xIDB2NS4yNWwtMy41NCAzLjU0YS41LjUgMCAwIDAgLjcwOC43MDhMMTIuNSAxMi42N1Y3eiIvPjwvc3ZnPg==';
+        // Icones em PNG Base64
+        const iconBagagemMao = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAABrElEQVR4nO2WO0sDQRSFvxjfRlFQsLBQ0cJCwUoQLGwsxFYQ/4BY+CtsbLQRGwutxEoQFMFKEBQtRLAQBMEHPuI7xs1cWC5LNptsNhG8MHC5M3POmdk7s+DxePwLqoF2YABoBaqBL+AT+AQ+gA9gExgKu0glsAwcATl8cgSYK3cBqcBBwg3QCjwAk8CS3LsLGAeqyjUBTR6BS2A8jnOjOeAe2AR2VeYsaAJM4BKYcFJ0CVhPuPQAsAH0A93ArJM4D1gIe2lV5vC15LTAu8wdOmljDjAbB5gG5p3sPgbMhL20InO4WtIsMA24djK7A4zHARaBcyfz9CrzptM29gXYBPqdxMvAnJM5HIypzAPAlZN5Ahh3EheAESfxCDDmJO4HhpzEE8Cgk7gbGHASDwA9TuJuoNdJ3A10OYm7gE4ncSfQ4STuANqdxG1Aq5O4FWhxEjcDTU7iJqDRSdwINDiJ64F6J3EdUOckrgVqnMTVQJWTuBKocBKXA2VO4lKgxElcDJhO4kLA9Bfk5eU/EfifC7gFDoPuJf+v/BK3kL/gG+7N+fcG/If8AH1pKdrXk7gsAAAAAElFTkSuQmCC';
+        const iconBagagemDesp = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAB4UlEQVR4nO2Xv0sCYRjHv6dlDdHQENHU0NQQQUODQw0NDTU4FDQ0NDQ0NDiI0CAigw0NDTQ0RNAgQoMIDdIgEv2gH5j9oIjoO/AePBx33p133nkH3wceON7n/X7eu/e99z0FBAQE/B0VAIOADqACaABKgHdADvACeAPkAM+ATyAHeAZ8ATnAE+AbyAEeAT+AHOAe8A/IAa4Bv4Ac4ArwD8gBLgE/gBzgHPALyAFOAX+AHOAYCANygCPAP+AaCANygB3gH3ANRAJ2gH9AHBAHbAH/gDggDtgA/gNxQBwQB6wB/4E4IA5YBf4Fl4E/wHkgCogDFoG/wGkgCogD5oA/wFEgCogDpoB8cBCIAuKAYUAOsB+IAuKAPuAvsAuIAuKAbmAHsAWIAuKATmADEAfEAe3AGiAOiANagBVAHBAHNAJLgDggDqgHFgBxQBxQC8wB4oA4oAqYAcQBcUAFMAmIA+KAUuAfEAfEAcXAOCAOiAMKgVFAHBAH5AHDgDggDsgFBgBxQByQDfQC4oA4IAvoAcQBcUAm0AmIA+KAdKANEAfEASlAMyAOiAOSgAZAHBAHxAF1QC0gDogDYoFqQBwQB0QDlYA4IA6IAMoBcUAcEA6UAeKAOCAUKAb+AAAPxm+UkvqfAAAAAElFTkSuQmCC';
+        const iconRelogio = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAABZUlEQVR4nO2WPUoDQRiGn0TxAnoAQbCw0kKwslILKyt7C7HzCII3sLXwAoKFhYUgWAiChYUgKFoIgqKF+Jd/8y0srCwmm92d3WyKfWHgm5n3fd7ZnZ0ZCAR+jSrgAFgDZoFKwAd+gC/gE/gA3oFN4MDqIuvALnAJFLDIBbBU7gUogA0bcbAUeAamgAW5dxKYAKrLtQBd9oALYCyNcas74AC4ACaBaWCunnEeOBv2pzWdQ7fSewY8yrqhjSZkgDPACTDhpG4F1tIedBFwHHfpTuBJdQ5TSpNJycAZ4FTqgvvAuNMG7gPjcYBF4NTJPHmVedtpGvsBrAH9TuJ5YMbJHI7GVOYh4NLJPAGMOYmLwKiTeBgYcRL3A0NO4j6g10ncC3Q7iXuALidxF9DpJO4A2p3EbUCrk7gVaHESNwNNTuImoMFJXA/UOYlrgRoncTVQ5SSuBCqcxGVAmZO4FCh2EhcBRdY/8Q3LLLf/xVVGmQAAAABJRU5ErkJggg==';
 
         // Bagagem de mao
         try {
-            doc.addImage(iconBagagemMao, 'SVG', margin + 10, infoY - 3, iconSize, iconSize);
-        } catch(e) { console.log('Erro icone bagagem mao:', e); }
-
-        doc.setFontSize(7); doc.setTextColor(...grayText);
-        doc.text('1x Mao', margin + 17, infoY);
-
-        // Bagagem despachada (se tiver)
-        if (bagagem) {
-            try {
-                doc.addImage(iconBagagemDesp, 'SVG', margin + 35, infoY - 3, iconSize, iconSize);
-            } catch(e) { console.log('Erro icone bagagem desp:', e); }
-            doc.text('1x Desp.', margin + 42, infoY);
-        }
-
-        // Duracao com icone relogio
-        const duracao = Utils.calcularDuracao(horarioSaida, horarioChegada);
-        try {
-            doc.addImage(iconRelogio, 'SVG', centerX - 12, infoY - 3, iconSize, iconSize);
-        } catch(e) { console.log('Erro icone relogio:', e); }
-        doc.text(duracao, centerX - 5, infoY);
-            if (imgBagMao.complete && imgBagMao.naturalWidth > 0) {
-                doc.addImage(imgBagMao, 'PNG', margin + 10, infoY - 3, iconSize, iconSize);
-            }
+            doc.addImage(iconBagagemMao, 'PNG', margin + 10, infoY - 3, iconSize, iconSize);
         } catch(e) {}
-        
         doc.setFontSize(7); doc.setTextColor(...grayText);
         doc.text('1x Mao', margin + 17, infoY);
 
         // Bagagem despachada (se tiver)
         if (bagagem) {
             try {
-                const imgBagDesp = new Image();
-                imgBagDesp.crossOrigin = 'anonymous';
-                await new Promise((resolve, reject) => {
-                    imgBagDesp.onload = resolve;
-                    imgBagDesp.onerror = resolve;
-                    imgBagDesp.src = 'https://balcao.com.vc/bagagem-de-viagem.png';
-                });
-                if (imgBagDesp.complete && imgBagDesp.naturalWidth > 0) {
-                    doc.addImage(imgBagDesp, 'PNG', margin + 35, infoY - 3, iconSize, iconSize);
-                }
+                doc.addImage(iconBagagemDesp, 'PNG', margin + 35, infoY - 3, iconSize, iconSize);
             } catch(e) {}
             doc.text('1x Desp.', margin + 42, infoY);
         }
@@ -649,16 +612,7 @@ async function gerarPDF(event) {
         // Duracao com icone relogio
         const duracao = Utils.calcularDuracao(horarioSaida, horarioChegada);
         try {
-            const imgRelogio = new Image();
-            imgRelogio.crossOrigin = 'anonymous';
-            await new Promise((resolve, reject) => {
-                imgRelogio.onload = resolve;
-                imgRelogio.onerror = resolve;
-                imgRelogio.src = 'https://balcao.com.vc/relogio.png';
-            });
-            if (imgRelogio.complete && imgRelogio.naturalWidth > 0) {
-                doc.addImage(imgRelogio, 'PNG', centerX - 12, infoY - 3, iconSize, iconSize);
-            }
+            doc.addImage(iconRelogio, 'PNG', centerX - 12, infoY - 3, iconSize, iconSize);
         } catch(e) {}
         doc.text(duracao, centerX - 5, infoY);
 
