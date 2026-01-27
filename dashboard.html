@@ -585,36 +585,29 @@ async function gerarPDF(event) {
         doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
         doc.text(dataSaida, pageWidth - margin - 12, boxY + 21, { align: 'right' });
 
-        // Linha inferior com icones
+               // Linha inferior com icones (usando caracteres/emojis)
         const infoY = boxY + 35;
-        const iconSize = 5;
-
-        // Icones em PNG Base64
-        const iconBagagemMao = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAABrElEQVR4nO2WO0sDQRSFvxjfRlFQsLBQ0cJCwUoQLGwsxFYQ/4BY+CtsbLQRGwutxEoQFMFKEBQtRLAQBMEHPuI7xs1cWC5LNptsNhG8MHC5M3POmdk7s+DxePwLqoF2YABoBaqBL+AT+AQ+gA9gExgKu0glsAwcATl8cgSYK3cBqcBBwg3QCjwAk8CS3LsLGAeqyjUBTR6BS2A8jnOjOeAe2AR2VeYsaAJM4BKYcFJ0CVhPuPQAsAH0A93ArJM4D1gIe2lV5vC15LTAu8wdOmljDjAbB5gG5p3sPgbMhL20InO4WtIsMA24djK7A4zHARaBcyfz9CrzptM29gXYBPqdxMvAnJM5HIypzAPAlZN5Ahh3EheAESfxCDDmJO4HhpzEE8Cgk7gbGHASDwA9TuJuoNdJ3A10OYm7gE4ncSfQ4STuANqdxG1Aq5O4FWhxEjcDTU7iJqDRSdwINDiJ64F6J3EdUOckrgVqnMTVQJWTuBKocBKXA2VO4lKgxElcDJhO4kLA9Bfk5eU/EfifC7gFDoPuJf+v/BK3kL/gG+7N+fcG/If8AH1pKdrXk7gsAAAAAElFTkSuQmCC';
-        const iconBagagemDesp = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAB4UlEQVR4nO2Xv0sCYRjHv6dlDdHQENHU0NQQQUODQw0NDTU4FDQ0NDQ0NDiI0CAigw0NDTQ0RNAgQoMIDdIgEv2gH5j9oIjoO/AePBx33p133nkH3wceON7n/X7eu/e99z0FBAQE/B0VAIOADqACaABKgHdADvACeAPkAM+ATyAHeAZ8ATnAE+AbyAEeAT+AHOAe8A/IAa4Bv4Ac4ArwD8gBLgE/gBzgHPALyAFOAX+AHOAYCANygCPAP+AaCANygB3gH3ANRAJ2gH9AHBAHbAH/gDggDtgA/gNxQBwQB6wB/4E4IA5YBf4Fl4E/wHkgCogDFoG/wGkgCogD5oA/wFEgCogDpoB8cBCIAuKAYUAOsB+IAuKAPuAvsAuIAuKAbmAHsAWIAuKATmADEAfEAe3AGiAOiANagBVAHBAHNAJLgDggDqgHFgBxQBxQC8wB4oA4oAqYAcQBcUAFMAmIA+KAUuAfEAfEAcXAOCAOiAMKgVFAHBAH5AHDgDggDsgFBgBxQByQDfQC4oA4IAvoAcQBcUAm0AmIA+KAdKANEAfEASlAMyAOiAOSgAZAHBAHxAF1QC0gDogDYoFqQBwQB0QDlYA4IA6IAMoBcUAcEA6UAeKAOCAUKAb+AAAPxm+UkvqfAAAAAElFTkSuQmCC';
-        const iconRelogio = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAABZUlEQVR4nO2WPUoDQRiGn0TxAnoAQbCw0kKwslILKyt7C7HzCII3sLXwAoKFhYUgWAiChYUgKFoIgqKF+Jd/8y0srCwmm92d3WyKfWHgm5n3fd7ZnZ0ZCAR+jSrgAFgDZoFKwAd+gC/gE/gA3oFN4MDqIuvALnAJFLDIBbBU7gUogA0bcbAUeAamgAW5dxKYAKrLtQBd9oALYCyNcas74AC4ACaBaWCunnEeOBv2pzWdQ7fSewY8yrqhjSZkgDPACTDhpG4F1tIedBFwHHfpTuBJdQ5TSpNJycAZ4FTqgvvAuNMG7gPjcYBF4NTJPHmVedtpGvsBrAH9TuJ5YMbJHI7GVOYh4NLJPAGMOYmLwKiTeBgYcRL3A0NO4j6g10ncC3Q7iXuALidxF9DpJO4A2p3EbUCrk7gVaHESNwNNTuImoMFJXA/UOYlrgRoncTVQ5SSuBCqcxGVAmZO4FCh2EhcBRdY/8Q3LLLf/xVVGmQAAAABJRU5ErkJggg==';
 
         // Bagagem de mao
-        try {
-            doc.addImage(iconBagagemMao, 'PNG', margin + 10, infoY - 3, iconSize, iconSize);
-        } catch(e) {}
+        doc.setFontSize(10); doc.setTextColor(100, 100, 100);
+        doc.text('🧳', margin + 8, infoY + 1);
         doc.setFontSize(7); doc.setTextColor(...grayText);
-        doc.text('1x Mao', margin + 17, infoY);
+        doc.text('1x Mao', margin + 15, infoY);
 
         // Bagagem despachada (se tiver)
         if (bagagem) {
-            try {
-                doc.addImage(iconBagagemDesp, 'PNG', margin + 35, infoY - 3, iconSize, iconSize);
-            } catch(e) {}
-            doc.text('1x Desp.', margin + 42, infoY);
+            doc.setFontSize(10); doc.setTextColor(100, 100, 100);
+            doc.text('🛄', margin + 33, infoY + 1);
+            doc.setFontSize(7); doc.setTextColor(...grayText);
+            doc.text('1x Desp.', margin + 40, infoY);
         }
 
-        // Duracao com icone relogio
+        // Duracao com relogio
         const duracao = Utils.calcularDuracao(horarioSaida, horarioChegada);
-        try {
-            doc.addImage(iconRelogio, 'PNG', centerX - 12, infoY - 3, iconSize, iconSize);
-        } catch(e) {}
-        doc.text(duracao, centerX - 5, infoY);
+        doc.setFontSize(10); doc.setTextColor(100, 100, 100);
+        doc.text('🕐', centerX - 14, infoY + 1);
+        doc.setFontSize(7); doc.setTextColor(...grayText);
+        doc.text(duracao, centerX - 7, infoY);
 
         // Tipo de cabine
         const cabineTraduzida = Utils.traduzirCabine(currentOffer.tipo_cabine);
@@ -711,7 +704,7 @@ async function gerarPDF(event) {
         doc.text(Utils.formatCurrency(valorTotal), pageWidth - margin - 10, y + 14, { align: 'right' });
 
          y += 30;
-         
+
         // RODAPE
        // ========== SIMULACAO DE PAGAMENTO ==========
         if (y > 180) { doc.addPage(); y = margin; }
