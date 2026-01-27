@@ -585,28 +585,53 @@ async function gerarPDF(event) {
         doc.setFontSize(8); doc.setFont(undefined, 'normal'); doc.setTextColor(...grayText);
         doc.text(dataSaida, pageWidth - margin - 12, boxY + 21, { align: 'right' });
 
-               // Linha inferior com icones (usando caracteres/emojis)
+     // Linha inferior com icones (carregando do Supabase)
         const infoY = boxY + 35;
+        const iconSize = 5;
+
+        // URLs dos icones no Supabase
+        const urlBagagemMao = 'https://eeyobwuzbloopynmflva.supabase.co/storage/v1/object/public/companhias-logos/bagagemmao.png';
+        const urlBagagemDesp = 'https://eeyobwuzbloopynmflva.supabase.co/storage/v1/object/public/companhias-logos/bagagem-de-viagem.png';
+        const urlRelogio = 'https://eeyobwuzbloopynmflva.supabase.co/storage/v1/object/public/companhias-logos/relogio.png';
+
+        // Funcao para carregar imagem
+        const carregarIcone = (url) => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = url;
+            });
+        };
+
+        // Carregar e desenhar icones
+        const [imgMao, imgDesp, imgRelogio] = await Promise.all([
+            carregarIcone(urlBagagemMao),
+            carregarIcone(urlBagagemDesp),
+            carregarIcone(urlRelogio)
+        ]);
 
         // Bagagem de mao
-        doc.setFontSize(10); doc.setTextColor(100, 100, 100);
-        doc.text('🧳', margin + 8, infoY + 1);
+        if (imgMao) {
+            doc.addImage(imgMao, 'PNG', margin + 8, infoY - 3, iconSize, iconSize);
+        }
         doc.setFontSize(7); doc.setTextColor(...grayText);
         doc.text('1x Mao', margin + 15, infoY);
 
         // Bagagem despachada (se tiver)
         if (bagagem) {
-            doc.setFontSize(10); doc.setTextColor(100, 100, 100);
-            doc.text('🛄', margin + 33, infoY + 1);
-            doc.setFontSize(7); doc.setTextColor(...grayText);
+            if (imgDesp) {
+                doc.addImage(imgDesp, 'PNG', margin + 33, infoY - 3, iconSize, iconSize);
+            }
             doc.text('1x Desp.', margin + 40, infoY);
         }
 
         // Duracao com relogio
         const duracao = Utils.calcularDuracao(horarioSaida, horarioChegada);
-        doc.setFontSize(10); doc.setTextColor(100, 100, 100);
-        doc.text('🕐', centerX - 14, infoY + 1);
-        doc.setFontSize(7); doc.setTextColor(...grayText);
+        if (imgRelogio) {
+            doc.addImage(imgRelogio, 'PNG', centerX - 14, infoY - 3, iconSize, iconSize);
+        }
         doc.text(duracao, centerX - 7, infoY);
 
         // Tipo de cabine
