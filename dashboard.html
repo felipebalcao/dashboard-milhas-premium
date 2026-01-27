@@ -589,15 +589,38 @@ async function gerarPDF(event) {
         const infoY = boxY + 35;
         const iconSize = 5;
 
-        // Carregar icones
+        // Icones em Base64 (SVG)
+        // Icone bagagem de mao (mala pequena)
+        const iconBagagemMao = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzY2NjY2NiI+PHBhdGggZD0iTTE4IDZoLTJWNGMwLTEuMS0uOS0yLTItMkg4Yy0xLjEgMC0yIC45LTIgMnYySDRjLTEuMSAwLTIgLjktMiAydjExYzAgMS4xLjkgMiAyIDJoMTRjMS4xIDAgMi0uOSAyLTJWOGMwLTEuMS0uOS0yLTItMnpNOCA0aDh2Mkg4VjR6bTEwIDE1SDZWOGgxMnYxMXoiLz48cGF0aCBkPSJNMTIgMTBjLTEuMSAwLTIgLjktMiAydjJjMCAxLjEuOSAyIDIgMnMyLS45IDItMnYtMmMwLTEuMS0uOS0yLTItMnoiLz48L3N2Zz4=';
+
+        // Icone bagagem despachada (mala grande)
+        const iconBagagemDesp = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzY2NjY2NiI+PHBhdGggZD0iTTE3LjUgNkg2LjVDNS42NyA2IDUgNi42NyA1IDcuNXYxMWMwIC44My42NyAxLjUgMS41IDEuNWgxMWMuODMgMCAxLjUtLjY3IDEuNS0xLjV2LTExYzAtLjgzLS42Ny0xLjUtMS41LTEuNXpNOSA0aDZjLjU1IDAgMSAuNDUgMSAxdjFIOFY1YzAtLjU1LjQ1LTEgMS0xem04LjUgMTVoLTExVjcuNWgxMXYxMS41ek04IDIxaDEuNXYxLjVIOFYyMXptNi41IDBoMS41djEuNWgtMS41VjIxeiIvPjxyZWN0IHg9IjkiIHk9IjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjIiLz48cmVjdCB4PSI5IiB5PSIxMiIgd2lkdGg9IjYiIGhlaWdodD0iMiIvPjwvc3ZnPg==';
+
+        // Icone relogio (duracao)
+        const iconRelogio = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzY2NjY2NiI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDIgMC04LTMuNTgtOC04czMuNTgtOCA4LTggOCAzLjU4IDggOC0zLjU4IDgtOCA4eiIvPjxwYXRoIGQ9Ik0xMi41IDdhLjUuNSAwIDAgMC0xIDB2NS4yNWwtMy41NCAzLjU0YS41LjUgMCAwIDAgLjcwOC43MDhMMTIuNSAxMi42N1Y3eiIvPjwvc3ZnPg==';
+
+        // Bagagem de mao
         try {
-            const imgBagMao = new Image();
-            imgBagMao.crossOrigin = 'anonymous';
-            await new Promise((resolve, reject) => {
-                imgBagMao.onload = resolve;
-                imgBagMao.onerror = resolve;
-                imgBagMao.src = 'https://balcao.com.vc/bagagemmao.png';
-            });
+            doc.addImage(iconBagagemMao, 'SVG', margin + 10, infoY - 3, iconSize, iconSize);
+        } catch(e) { console.log('Erro icone bagagem mao:', e); }
+
+        doc.setFontSize(7); doc.setTextColor(...grayText);
+        doc.text('1x Mao', margin + 17, infoY);
+
+        // Bagagem despachada (se tiver)
+        if (bagagem) {
+            try {
+                doc.addImage(iconBagagemDesp, 'SVG', margin + 35, infoY - 3, iconSize, iconSize);
+            } catch(e) { console.log('Erro icone bagagem desp:', e); }
+            doc.text('1x Desp.', margin + 42, infoY);
+        }
+
+        // Duracao com icone relogio
+        const duracao = Utils.calcularDuracao(horarioSaida, horarioChegada);
+        try {
+            doc.addImage(iconRelogio, 'SVG', centerX - 12, infoY - 3, iconSize, iconSize);
+        } catch(e) { console.log('Erro icone relogio:', e); }
+        doc.text(duracao, centerX - 5, infoY);
             if (imgBagMao.complete && imgBagMao.naturalWidth > 0) {
                 doc.addImage(imgBagMao, 'PNG', margin + 10, infoY - 3, iconSize, iconSize);
             }
