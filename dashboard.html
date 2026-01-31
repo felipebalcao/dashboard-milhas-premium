@@ -91,7 +91,21 @@
             <div class="text-gray-400 text-sm mb-2">Mostrando <span id="tableCount" class="text-white font-bold">0</span> de <span id="tableTotal" class="text-white font-bold">0</span> ofertas</div>
             <div class="overflow-x-auto">
                 <table class="table table-zebra w-full">
-                    <thead><tr class="text-gray-300"><th>Data Cadastro</th><th>Data Viagem</th><th>Cia</th><th>Origem</th><th>Destino</th><th>Voo</th><th>Pontos</th><th>Taxa</th><th>Valor</th><th>Valor Google</th><th>Desconto</th><th>Cabine</th><th>Acoes</th></tr></thead>
+                    <thead><tr class="text-gray-300">
+                    <th class="cursor-pointer hover:text-white" onclick="App.sortTable('created_at')">Data Cadastro <span id="sort-created_at">↕</span></th>
+                    <th class="cursor-pointer hover:text-white" onclick="App.sortTable('data_viagem')">Data Viagem <span id="sort-data_viagem">↕</span></th>
+                    <th class="cursor-pointer hover:text-white" onclick="App.sortTable('cia')">Cia <span id="sort-cia">↕</span></th>
+                    <th class="cursor-pointer hover:text-white" onclick="App.sortTable('origem')">Origem <span id="sort-origem">↕</span></th>
+                    <th class="cursor-pointer hover:text-white" onclick="App.sortTable('destino')">Destino <span id="sort-destino">↕</span></th>
+                    <th class="cursor-pointer hover:text-white" onclick="App.sortTable('voo')">Voo <span id="sort-voo">↕</span></th>
+                    <th class="cursor-pointer hover:text-white" onclick="App.sortTable('pontos')">Pontos <span id="sort-pontos">↕</span></th>
+                    <th class="cursor-pointer hover:text-white" onclick="App.sortTable('taxa')">Taxa <span id="sort-taxa">↕</span></th>
+                    <th class="cursor-pointer hover:text-white" onclick="App.sortTable('valor')">Valor <span id="sort-valor">↕</span></th>
+                    <th class="cursor-pointer hover:text-white" onclick="App.sortTable('valor_google')">Valor Google <span id="sort-valor_google">↕</span></th>
+                    <th class="cursor-pointer hover:text-white" onclick="App.sortTable('percentual_desconto')">Desconto <span id="sort-percentual_desconto">↕</span></th>
+                    <th class="cursor-pointer hover:text-white" onclick="App.sortTable('tipo_cabine')">Cabine <span id="sort-tipo_cabine">↕</span></th>
+                    <th>Acoes</th>
+                    </tr></thead>
                     <tbody id="tableBody" class="text-white"></tbody>
                 </table>
             </div>
@@ -324,6 +338,43 @@
             document.getElementById('startDate').value = start.toISOString().split('T')[0];
             document.getElementById('endDate').value = end.toISOString().split('T')[0];
         },
+        currentSort: { field: null, direction: 'asc' },
+        sortTable(field) {
+            // Alterna direção se clicar na mesma coluna
+            if (this.currentSort.field === field) {
+                this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                this.currentSort.field = field;
+                this.currentSort.direction = 'asc';
+            }
+            
+            // Atualiza ícones
+            document.querySelectorAll('[id^="sort-"]').forEach(el => el.textContent = '↕');
+            const icon = document.getElementById('sort-' + field);
+            if (icon) icon.textContent = this.currentSort.direction === 'asc' ? '↑' : '↓';
+            
+            // Ordena os dados
+            this.data.sort((a, b) => {
+                let valA = a[field];
+                let valB = b[field];
+                
+                // Tratamento para valores nulos
+                if (valA == null) valA = '';
+                if (valB == null) valB = '';
+                
+                // Comparação numérica para campos de valor
+                if (['pontos', 'taxa', 'valor', 'valor_google', 'percentual_desconto'].includes(field)) {
+                    valA = parseFloat(valA) || 0;
+                    valB = parseFloat(valB) || 0;
+                }
+                
+                if (valA < valB) return this.currentSort.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return this.currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            this.filterTable();
+        },
         bindEvents() { document.getElementById('btnRefresh').addEventListener('click', () => this.refresh()); },
         async refresh() {
             const filters = { startDate: document.getElementById('startDate').value, endDate: document.getElementById('endDate').value };
@@ -407,7 +458,7 @@
                 const offerData = JSON.stringify(r).replace(/"/g, '&quot;');
                 const companhia = getCompanhiaByIata(r.codigo_cia_iata);
                 const ciaDisplay = companhia ? companhia.nome : (r.codigo_cia_iata || '--');
-                row.innerHTML = `<td>${Utils.formatDateShort(r.created_at)}<td>${r.data_viagem ? r.data_viagem.split('-').reverse().join('/') : '--'}</td></td><td><span class="badge badge-sm badge-primary">${ciaDisplay}</span></td><td>${r.origem || '--'}</td><td>${r.destino || '--'}</td><td>${r.voo || '--'}</td><td>${r.pontos || '--'}</td><td class="font-semibold text-yellow-400">${r.taxa || '--'}</td><td class="font-semibold text-green-400">${Utils.formatCurrency(r.valor)}</td><td class="font-semibold text-blue-400">${Utils.formatCurrency(r.valor_google)}</td><td class="font-semibold text-purple-400">${r.percentual_desconto ? r.percentual_desconto + '%' : '--'}</td><td>${r.tipo_cabine || '--'}</td><td><div class="flex gap-1">${r.link_acesso ? `<a href="${r.link_acesso}" target="_blank" class="btn btn-xs btn-primary">Link</a>` : ''}<button onclick='openOrcamentoModal(${offerData})' class="btn btn-xs btn-accent">Orcamento</button></div></td>`;
+                row.innerHTML = `<td>${Utils.formatDate(r.created_at)}</td><td>${r.data_viagem ? r.data_viagem.split('-').reverse().join('/') : '--'}</td><td><span class="badge badge-sm badge-primary">${ciaDisplay}</span></td><td>${r.origem || '--'}</td><td>${r.destino || '--'}</td><td>${r.voo || '--'}</td><td>${r.pontos || '--'}</td><td class="font-semibold text-yellow-400">${r.taxa || '--'}</td><td class="font-semibold text-green-400">${Utils.formatCurrency(r.valor)}</td><td class="font-semibold text-blue-400">${Utils.formatCurrency(r.valor_google)}</td><td class="font-semibold text-purple-400">${r.percentual_desconto ? r.percentual_desconto + '%' : '--'}</td><td>${r.tipo_cabine || '--'}</td><td><div class="flex gap-1">${r.link_acesso ? `<a href="${r.link_acesso}" target="_blank" class="btn btn-xs btn-primary">Link</a>` : ''}<button onclick='openOrcamentoModal(${offerData})' class="btn btn-xs btn-accent">Orcamento</button></div></td>`;
             });
         },
         clearTableFilters() { document.getElementById('filterOrigem').value = ''; document.getElementById('filterDestino').value = ''; document.getElementById('tableLimit').value = '10'; this.filterTable(); }
