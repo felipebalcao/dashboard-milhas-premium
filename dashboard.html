@@ -90,7 +90,7 @@
             <div class="text-gray-400 text-sm mb-2">Mostrando <span id="tableCount" class="text-white font-bold">0</span> de <span id="tableTotal" class="text-white font-bold">0</span> ofertas</div>
             <div class="overflow-x-auto">
                 <table class="table table-zebra w-full">
-                    <thead><tr class="text-gray-300"><th>Data</th><th>Cia</th><th>Origem</th><th>Destino</th><th>Voo</th><th>Pontos</th><th>Taxa</th><th>Valor</th><th>Valor Google</th><th>Desconto</th><th>Cabine</th><th>Acoes</th></tr></thead>
+                    <thead><tr class="text-gray-300"><th>Data Cadastro</th><th>Data Viagem</th><th>Cia</th><th>Origem</th><th>Destino</th><th>Voo</th><th>Pontos</th><th>Taxa</th><th>Valor</th><th>Valor Google</th><th>Desconto</th><th>Cabine</th><th>Acoes</th></tr></thead>
                     <tbody id="tableBody" class="text-white"></tbody>
                 </table>
             </div>
@@ -400,13 +400,13 @@
             document.getElementById('tableTotal').textContent = this.data.length;
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            if (displayData.length === 0) { const row = tbody.insertRow(); row.innerHTML = `<td colspan="10" class="text-center text-gray-400 py-8">Nenhuma oferta encontrada</td>`; return; }
+            if (displayData.length === 0) { const row = tbody.insertRow(); row.innerHTML = `<td colspan="13" class="text-center text-gray-400 py-8">Nenhuma oferta encontrada</td>`; return; }
             displayData.forEach(r => {
                 const row = tbody.insertRow();
                 const offerData = JSON.stringify(r).replace(/"/g, '&quot;');
                 const companhia = getCompanhiaByIata(r.codigo_cia_iata);
                 const ciaDisplay = companhia ? companhia.nome : (r.codigo_cia_iata || '--');
-                row.innerHTML = `<td>${Utils.formatDateShort(r.created_at)}</td><td><span class="badge badge-sm badge-primary">${ciaDisplay}</span></td><td>${r.origem || '--'}</td><td>${r.destino || '--'}</td><td>${r.voo || '--'}</td><td>${r.pontos || '--'}</td><td class="font-semibold text-yellow-400">${r.taxa || '--'}</td><td class="font-semibold text-green-400">${Utils.formatCurrency(r.valor)}</td><td class="font-semibold text-blue-400">${Utils.formatCurrency(r.valor_google)}</td><td class="font-semibold text-purple-400">${r.percentual_desconto ? r.percentual_desconto + '%' : '--'}</td><td>${r.tipo_cabine || '--'}</td><td><div class="flex gap-1">${r.link_acesso ? `<a href="${r.link_acesso}" target="_blank" class="btn btn-xs btn-primary">Link</a>` : ''}<button onclick='openOrcamentoModal(${offerData})' class="btn btn-xs btn-accent">Orcamento</button></div></td>`;
+                row.innerHTML = `<td>${Utils.formatDateShort(r.created_at)}<td>${r.data_viagem ? r.data_viagem.split('-').reverse().join('/') : '--'}</td></td><td><span class="badge badge-sm badge-primary">${ciaDisplay}</span></td><td>${r.origem || '--'}</td><td>${r.destino || '--'}</td><td>${r.voo || '--'}</td><td>${r.pontos || '--'}</td><td class="font-semibold text-yellow-400">${r.taxa || '--'}</td><td class="font-semibold text-green-400">${Utils.formatCurrency(r.valor)}</td><td class="font-semibold text-blue-400">${Utils.formatCurrency(r.valor_google)}</td><td class="font-semibold text-purple-400">${r.percentual_desconto ? r.percentual_desconto + '%' : '--'}</td><td>${r.tipo_cabine || '--'}</td><td><div class="flex gap-1">${r.link_acesso ? `<a href="${r.link_acesso}" target="_blank" class="btn btn-xs btn-primary">Link</a>` : ''}<button onclick='openOrcamentoModal(${offerData})' class="btn btn-xs btn-accent">Orcamento</button></div></td>`;
             });
         },
         clearTableFilters() { document.getElementById('filterOrigem').value = ''; document.getElementById('filterDestino').value = ''; document.getElementById('tableLimit').value = '10'; this.filterTable(); }
